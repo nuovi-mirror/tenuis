@@ -24,8 +24,6 @@ word stackptr;
 char entry_name[128] = "0";
 int entry_seen = 0;
 
-unsigned int multi = 0;
-
 void asm_error(const char *message) {
 	fprintf(stderr, "assembler: %s\n", message);
 	exit(EXIT_FAILURE);

@@ -36,8 +36,6 @@ extern word stackptr;
 extern char entry_name[128];
 extern int entry_seen;
 
-extern unsigned int multi;
-
 /* parser.c */
 int parse_number(const char *text, word *value);
 int parse_string32(const char *text, word *value);

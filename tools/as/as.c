@@ -113,12 +113,6 @@ void first_pass(const char *filename) {
 			continue;
 		}
 
-		if (strcmp(parsed.mnemonic, "multi") == 0) {
-			multi = 1;
-			continue;
-		}
-
-
 		if (strcmp(parsed.mnemonic, "heap") == 0) {
 			if (in_data) asm_error("heap directive must be before .data");
 			if (parsed.operand_count != 1) asm_error("heap requires one operand");
@@ -592,8 +586,7 @@ void second_pass(const char *filename) {
 
 		if (strcmp(parsed.mnemonic, "entry") == 0 ||
 			strcmp(parsed.mnemonic, "heap") == 0 ||
-			strcmp(parsed.mnemonic, "stack") == 0 ||
-			strcmp(parsed.mnemonic, "multi") == 0)
+			strcmp(parsed.mnemonic, "stack") == 0)
 			continue;
 
 		if (strcmp(parsed.mnemonic, ".data") == 0) {
@@ -645,17 +638,16 @@ void write_output(const char *filename) {
 
 	word header[VMHEADERWORDS] = {0};
 
-	header[0 ] = VMMAGIC;
-	header[1 ] = VMVERSION;
-	header[2 ] = VMHEADERWORDS;
+	header[0] = VMMAGIC;
+	header[1] = VMVERSION;
+	header[2] = VMHEADERWORDS;
 
-	header[4 ] = (word)code_count;
-	header[5 ] = (word)data_count;
-	header[6 ] = entry;
+	header[4] = (word)code_count;
+	header[5] = (word)data_count;
+	header[6] = entry;
 
-	header[8 ] = heap_size;
-	header[9 ] = stackptr;
-	header[10] = multi;
+	header[8] = heap_size;
+	header[9] = stackptr;
 
 	/* write the header */
 	for (unsigned int i = 0; i < VMHEADERWORDS; i++) write_word(file, header[i]);
@@ -680,8 +672,6 @@ int main(int argc, char **argv) {
 	printf("Assembled %zu code words and %zu data words.\n", code_count, data_count);
 	printf("Heap size: %u words\n", (unsigned int)heap_size);
 	printf("Entry point: %u\n", (unsigned int)entry_address);
-	if (multi == 0) printf("Multiprocessing disabled\n");
-	else if (multi == 1) printf("Multiprocessing enabled\n");
 
 	free(code);
 	free(data);

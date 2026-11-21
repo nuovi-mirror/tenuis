@@ -65,12 +65,11 @@ int main(int argc, char **argv) {
 	}
 
 	/* Extract header fields */
-	word codesize 		= header[4 ];
-	word datasize 		= header[5 ];
-	word entry    		= header[6 ];
-	word heapsize 		= header[8 ];
-	word stackptr 		= header[9 ];
-	unsigned int multi	= header[10];
+	word codesize = header[4];
+	word datasize = header[5];
+	word entry    = header[6];
+	word heapsize = header[8];
+	word stackptr = header[9];
 
 	if (heapsize == 0 ||
 		codesize > heapsize ||
@@ -130,7 +129,6 @@ int main(int argc, char **argv) {
 	vm.pc = entry;
 	vm.halted = 0;
 	vm.registers[63] = stackptr;
-	vm.multi = multi;
 
 	interpret(&vm);
 

@@ -13,7 +13,7 @@ the program, and so on. This header follows the format of
 	7  : [RESERVED]
 	8  : total size of memory to allocate for the program
 	9  : address to initialize the stack pointer to
-	10 : set to 1 if multithredding is allowed
+	10 : [RESERVED]
 	11 : [RESERVED]
 	12 : [RESERVED]
 	13 : [RESERVED]
