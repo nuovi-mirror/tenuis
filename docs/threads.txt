@@ -1,0 +1,8 @@
+A threads is a new sub-instance of the virtual machine that runs in
+parallel to the main instance. This instance shares a heap with the
+main instance, but has an independent register file. An arbitrary
+number of threads may be spawned. The contents of the register file from
+the thread which is spawning the thread in reference, known as the parent
+thread, is used as the initial register state in the new thread being
+spawned, known as the child thread. The program will exit once the main
+thread exits or a halt is performed.

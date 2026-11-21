@@ -82,6 +82,13 @@ stack manipulation family - Manipulate a stack
 	popr		- Pop into a register
 	poph 		- Pop into a memory address
 
+Multiprocessing opcodes - Manipulate processor threads
+	spawnll		- Spawn a new thread with the initial stack pointer
+			  and entry point inlined
+	spawnrl		- Spawn a new thread with the initial stack pointer
+			  inside of a register and the entry point inlined
+	stop		- Stop the current thread
+
 Interrupts - Perform an interrupt
 	intl		- Perform an interrupt at literal
 
