@@ -8,7 +8,9 @@ thread:
 	halt
 
 start:
-	spawnll thread, 32
+	spawnll 32, thread
+loop:
+	jmpl loop
 
 .data
 msg: .word "\n\0\0\0"

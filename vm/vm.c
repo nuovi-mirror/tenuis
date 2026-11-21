@@ -1,4 +1,5 @@
 #include "vm.h"
+#include <stdlib.h>
 
 #include "opcodes/add.c"
 #include "opcodes/sub.c"
@@ -71,7 +72,7 @@ void interpret (struct vm *vm) {
 				break;
 		}
 
-		if (vm->halted == 1) return;
+		if (vm->halted == 1) exit(0);
 		if (vm->kill == 1) return;
 		vm->pc++;
 	}

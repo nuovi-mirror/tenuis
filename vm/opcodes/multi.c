@@ -1,14 +1,19 @@
 #include "vm.h"
 #include "vmthreads.h"
 
+#include <stdio.h>
+
 /* spawn thread; sp in reg, pc inline */
 void opcode_spawnrl (struct vm *vm) {
+	printf("started");
 	rlockmem(vm);
 	word reg = vm->heap[++vm->pc];
 	word addr = vm->heap[++vm->pc];
 	frlockmem(vm);
 	word sp = vm->registers[reg];
+	printf("spawning");
 	vmtnew(vm, sp, addr);
+	printf("spawned");
 }
 
 /* spawn thread; sp inline, pc inline */
