@@ -1,19 +1,19 @@
 #include "vm.h"
 
 /* goto inline */
-void opcode_jmpl (struct vm *vm) {
+static inline void opcode_jmpl (struct vm *vm) {
 	word addr = vm->heap[++vm->pc];
 	vm->pc = addr - 1;
 }
 
 /* goto addr in register */
-void opcode_jmpr (struct vm *vm) {
+static inline void opcode_jmpr (struct vm *vm) {
 	word reg = vm->heap[++vm->pc];
 	vm->pc = vm->registers[reg] - 1;
 }
 
 /* goto addr in register if packed status code in register marks equality */
-void opcode_jmperr (struct vm *vm) {
+static inline void opcode_jmperr (struct vm *vm) {
 	word reg = vm->heap[++vm->pc];
 	word jmp = vm->heap[++vm->pc];
 	unsigned int bit = checkbit(vm->registers[reg], 0);
@@ -21,7 +21,7 @@ void opcode_jmperr (struct vm *vm) {
 }
 
 /* goto addr literal if packed status code in register marks equality */
-void opcode_jmperl (struct vm *vm) {
+static inline void opcode_jmperl (struct vm *vm) {
 	word reg = vm->heap[++vm->pc];
 	word jmp = vm->heap[++vm->pc];
 	unsigned int bit = checkbit(vm->registers[reg], 0);
@@ -29,7 +29,7 @@ void opcode_jmperl (struct vm *vm) {
 }
 
 /* goto addr in memory if packed status code in register marks equality */
-void opcode_jmperh (struct vm *vm) {
+static inline void opcode_jmperh (struct vm *vm) {
 	word reg = vm->heap[++vm->pc];
 	word jmp = vm->heap[++vm->pc];
 	unsigned int bit = checkbit(vm->registers[reg], 0);
@@ -37,7 +37,7 @@ void opcode_jmperh (struct vm *vm) {
 }
 
 /* goto addr in register if packed status code in register marks !equality */
-void opcode_jmpnerr (struct vm *vm) {
+static inline void opcode_jmpnerr (struct vm *vm) {
 	word reg = vm->heap[++vm->pc];
 	word jmp = vm->heap[++vm->pc];
 	unsigned int bit = checkbit(vm->registers[reg], 1);
@@ -45,7 +45,7 @@ void opcode_jmpnerr (struct vm *vm) {
 }
 
 /* goto addr literal if packed status code in register marks !equality */
-void opcode_jmpnerl (struct vm *vm) {
+static inline void opcode_jmpnerl (struct vm *vm) {
 	word reg = vm->heap[++vm->pc];
 	word jmp = vm->heap[++vm->pc];
 	unsigned int bit = checkbit(vm->registers[reg], 1);
@@ -53,7 +53,7 @@ void opcode_jmpnerl (struct vm *vm) {
 }
 
 /* goto addr in memory if packed status code in register marks !equality */
-void opcode_jmpnerh (struct vm *vm) {
+static inline void opcode_jmpnerh (struct vm *vm) {
 	word reg = vm->heap[++vm->pc];
 	word jmp = vm->heap[++vm->pc];
 	unsigned int bit = checkbit(vm->registers[reg], 1);
@@ -61,7 +61,7 @@ void opcode_jmpnerh (struct vm *vm) {
 }
 
 /* fused compare and jump if reg is zero to literal address */
-void opcode_fjmpzrl (struct vm *vm) {
+static inline void opcode_fjmpzrl (struct vm *vm) {
 	word reg = vm->heap[++vm->pc];
 	word jmp = vm->heap[++vm->pc];
 	word value = vm->registers[reg];
@@ -69,7 +69,7 @@ void opcode_fjmpzrl (struct vm *vm) {
 }
 
 /* fused compare and jump if reg does not equal reg to literal address */
-void opcode_fjmpnerrl (struct vm *vm) {
+static inline void opcode_fjmpnerrl (struct vm *vm) {
 	word reg = vm->heap[++vm->pc];
 	word reg2 = vm->heap[++vm->pc];
 	word jmp = vm->heap[++vm->pc];
@@ -79,7 +79,7 @@ void opcode_fjmpnerrl (struct vm *vm) {
 }
 
 /* fused compare and jump if reg equals reg to literal address */
-void opcode_fjmperrl (struct vm *vm) {
+static inline void opcode_fjmperrl (struct vm *vm) {
 	word reg = vm->heap[++vm->pc];
 	word reg2 = vm->heap[++vm->pc];
 	word jmp = vm->heap[++vm->pc];
@@ -89,7 +89,7 @@ void opcode_fjmperrl (struct vm *vm) {
 }
 
 /* fused compare and jump if reg equals literal to literal address */
-void opcode_fjmperll (struct vm *vm) {
+static inline void opcode_fjmperll (struct vm *vm) {
 	word reg = vm->heap[++vm->pc];
 	word num1 = vm->heap[++vm->pc];
 	word jmp = vm->heap[++vm->pc];
@@ -98,7 +98,7 @@ void opcode_fjmperll (struct vm *vm) {
 }
 
 /* fused compare and jump if reg !equal literal to literal address */
-void opcode_fjmpnerll (struct vm *vm) {
+static inline void opcode_fjmpnerll (struct vm *vm) {
 	word reg = vm->heap[++vm->pc];
 	word num1 = vm->heap[++vm->pc];
 	word jmp = vm->heap[++vm->pc];

@@ -58,7 +58,6 @@ void wordcmp (word num0, word num1, word *reg);
 void interpret (struct vm *vm);
 
 /* opcodes */
-
 #define VMOPCODE_NOP 		0x00
 #define VMOPCODE_HALT	 	0x01
 #define VMOPCODE_LOADLH 	0x02
@@ -106,105 +105,5 @@ void interpret (struct vm *vm);
 #define VMOPCODE_FJMPERRL	0x2C
 #define VMOPCODE_FJMPERLL	0x2D
 #define VMOPCODE_FJMPNERLL	0x2E
-
-/* instruction handlers */
-void opcode_nop 	(struct vm *vm);
-void opcode_halt 	(struct vm *vm);
-void opcode_loadlr 	(struct vm *vm);
-void opcode_loadlh 	(struct vm *vm);
-void opcode_printl 	(struct vm *vm);
-void opcode_printr 	(struct vm *vm);
-void opcode_printh 	(struct vm *vm);
-void opcode_jmpl 	(struct vm *vm);
-void opcode_jmpr 	(struct vm *vm);
-void opcode_cmprrr 	(struct vm *vm);
-void opcode_loadrh	(struct vm *vm);
-void opcode_loadhr	(struct vm *vm);
-void opcode_jmperl 	(struct vm *vm);
-void opcode_jmperr 	(struct vm *vm);
-void opcode_pushr 	(struct vm *vm);
-void opcode_popr 	(struct vm *vm);
-void opcode_pushl 	(struct vm *vm);
-void opcode_intl 	(struct vm *vm);
-void opcode_loadrr 	(struct vm *vm);
-void opcode_loadfhirr 	(struct vm *vm);
-void opcode_loadhh 	(struct vm *vm);
-void opcode_poph 	(struct vm *vm);
-void opcode_pushh 	(struct vm *vm);
-void opcode_addrrr	(struct vm *vm);
-void opcode_addllr	(struct vm *vm);
-void opcode_addhhr	(struct vm *vm);
-void opcode_addhhh	(struct vm *vm);
-void opcode_addlrr	(struct vm *vm);
-void opcode_subrrr	(struct vm *vm);
-void opcode_subllr	(struct vm *vm);
-void opcode_subhhh	(struct vm *vm);
-void opcode_sublrr	(struct vm *vm);
-void opcode_subhhr	(struct vm *vm);
-void opcode_incr	(struct vm *vm);
-void opcode_inch	(struct vm *vm);
-void opcode_decr	(struct vm *vm);
-void opcode_dech	(struct vm *vm);
-void opcode_jmperh	(struct vm *vm);
-void opcode_jmpnerh	(struct vm *vm);
-void opcode_jmpnerl	(struct vm *vm);
-void opcode_jmpnerr	(struct vm *vm);
-void opcode_loadrfhir	(struct vm *vm);
-void opcode_fjmpzrl	(struct vm *vm);
-void opcode_fjmperrl	(struct vm *vm);
-void opcode_fjmpnerrl	(struct vm *vm);
-void opcode_fjmpnerll	(struct vm *vm);
-void opcode_fjmperll	(struct vm *vm);
-
-/* the opcode table */
-static opcode_handler dispatch[] = {
-	[VMOPCODE_NOP]		= opcode_nop,
-	[VMOPCODE_HALT]		= opcode_halt,
-	[VMOPCODE_LOADLH]	= opcode_loadlh,
-	[VMOPCODE_LOADLR]	= opcode_loadlr,
-	[VMOPCODE_PRINTH]	= opcode_printh,
-	[VMOPCODE_PRINTR]	= opcode_printr,
-	[VMOPCODE_PRINTL]	= opcode_printl,
-	[VMOPCODE_JMPL]		= opcode_jmpl,
-	[VMOPCODE_JMPR]		= opcode_jmpr,
-	[VMOPCODE_CMPRRR]	= opcode_cmprrr,
-	[VMOPCODE_LOADRH]	= opcode_loadrh,
-	[VMOPCODE_LOADHR]	= opcode_loadhr,
-	[VMOPCODE_JMPERR]	= opcode_jmperr,
-	[VMOPCODE_JMPERL]	= opcode_jmperl,
-	[VMOPCODE_PUSHR]	= opcode_pushr,
-	[VMOPCODE_POPR]		= opcode_popr,
-	[VMOPCODE_PUSHL]	= opcode_pushl,
-	[VMOPCODE_INTL]		= opcode_intl,
-	[VMOPCODE_LOADRR]	= opcode_loadrr,
-	[VMOPCODE_LOADFHIRR]	= opcode_loadfhirr,
-	[VMOPCODE_LOADHH]	= opcode_loadhh,
-	[VMOPCODE_POPH]		= opcode_poph,
-	[VMOPCODE_PUSHH]	= opcode_pushh,
-	[VMOPCODE_ADDRRR]	= opcode_addrrr,
-	[VMOPCODE_ADDLLR]	= opcode_addllr,
-	[VMOPCODE_ADDHHR]	= opcode_addhhr,
-	[VMOPCODE_ADDHHH]	= opcode_addhhh,
-	[VMOPCODE_ADDLRR]	= opcode_addlrr,
-	[VMOPCODE_SUBLLR]	= opcode_subllr,
-	[VMOPCODE_SUBRRR]	= opcode_subrrr,
-	[VMOPCODE_SUBLRR]	= opcode_sublrr,
-	[VMOPCODE_SUBHHH]	= opcode_subhhh,
-	[VMOPCODE_SUBHHR]	= opcode_subhhr,
-	[VMOPCODE_DECR]		= opcode_decr,
-	[VMOPCODE_DECH]		= opcode_dech,
-	[VMOPCODE_INCR]		= opcode_incr,
-	[VMOPCODE_INCH]		= opcode_inch,
-	[VMOPCODE_JMPERH]	= opcode_jmperh,
-	[VMOPCODE_JMPNERL]	= opcode_jmpnerl,
-	[VMOPCODE_JMPNERH]	= opcode_jmpnerh,
-	[VMOPCODE_JMPNERR]	= opcode_jmpnerr,
-	[VMOPCODE_LOADRFHIR]	= opcode_loadrfhir,
-	[VMOPCODE_FJMPZRL]	= opcode_fjmpzrl,
-	[VMOPCODE_FJMPERRL]	= opcode_fjmperrl,
-	[VMOPCODE_FJMPNERRL]	= opcode_fjmpnerrl,
-	[VMOPCODE_FJMPERLL]	= opcode_fjmperll,
-	[VMOPCODE_FJMPNERLL]	= opcode_fjmpnerll,
-};
 
 #endif

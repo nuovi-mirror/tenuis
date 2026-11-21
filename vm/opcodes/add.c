@@ -1,7 +1,7 @@
 #include "vm.h"
 
 /* reg + reg -> reg */
-void opcode_addrrr (struct vm *vm) {
+static inline void opcode_addrrr (struct vm *vm) {
 	word r0 = vm->heap[++vm->pc];
 	word r1 = vm->heap[++vm->pc];
 	word dst = vm->heap[++vm->pc];
@@ -12,7 +12,7 @@ void opcode_addrrr (struct vm *vm) {
 }
 
 /* inline + reg -> reg */
-void opcode_addlrr (struct vm *vm) {
+static inline void opcode_addlrr (struct vm *vm) {
 	word a0 = vm->heap[++vm->pc];
 	word r1 = vm->heap[++vm->pc];
 	word dst = vm->heap[++vm->pc];
@@ -22,7 +22,7 @@ void opcode_addlrr (struct vm *vm) {
 }
 
 /* inline + inline -> reg */
-void opcode_addllr (struct vm *vm) {
+static inline void opcode_addllr (struct vm *vm) {
 	word a0 = vm->heap[++vm->pc];
 	word a1 = vm->heap[++vm->pc];
 	word dst = vm->heap[++vm->pc];
@@ -31,7 +31,7 @@ void opcode_addllr (struct vm *vm) {
 }
 
 /* mem + mem -> reg */
-void opcode_addhhr (struct vm *vm) {
+static inline void opcode_addhhr (struct vm *vm) {
 	word h0 = vm->heap[++vm->pc];
 	word h1 = vm->heap[++vm->pc];
 	word dst = vm->heap[++vm->pc];
@@ -42,7 +42,7 @@ void opcode_addhhr (struct vm *vm) {
 }
 
 /* mem + mem -> mem */
-void opcode_addhhh (struct vm *vm) {
+static inline void opcode_addhhh (struct vm *vm) {
 	word h0 = vm->heap[++vm->pc];
 	word h1 = vm->heap[++vm->pc];
 	word dst = vm->heap[++vm->pc];

@@ -3,19 +3,19 @@
 #include "vm.h"
 
 /* NOP */
-void opcode_nop (struct vm *vm) {
+static inline void opcode_nop (struct vm *vm) {
 	(void)vm;
 }
 
 /* HALT */
-void opcode_halt (struct vm *vm) {
+static inline void opcode_halt (struct vm *vm) {
 	vm->halted = 1;
 }
 
 /* print family */
 
 /* register -> stdout */
-void opcode_printr (struct vm *vm) {
+static inline void opcode_printr (struct vm *vm) {
 	word reg = vm->heap[++vm->pc];
 	word value = vm->registers[reg];
 	printf("%c%c%c%c", 
@@ -27,7 +27,7 @@ void opcode_printr (struct vm *vm) {
 }
 
 /* heap -> stdout */
-void opcode_printh (struct vm *vm) {
+static inline void opcode_printh (struct vm *vm) {
 	word addr = vm->heap[++vm->pc];
 	word value = vm->heap[addr];
 	printf("%c%c%c%c", 
@@ -39,7 +39,7 @@ void opcode_printh (struct vm *vm) {
 }
 
 /* inline -> stdout */
-void opcode_printl (struct vm *vm) {
+static inline void opcode_printl (struct vm *vm) {
 	word value = vm->heap[++vm->pc];
 	printf("%c%c%c%c", 
 		(value >> 24) & 0xFF,
@@ -53,7 +53,7 @@ void opcode_printl (struct vm *vm) {
 /* interrupt family */
 
 /* interrupt inline */
-void opcode_intl (struct vm *vm) {
+static inline void opcode_intl (struct vm *vm) {
 	word value = vm->heap[++vm->pc];
 	vm->interrupts[value](vm);
 }
