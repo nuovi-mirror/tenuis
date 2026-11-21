@@ -16,7 +16,9 @@ static inline void opcode_halt (struct vm *vm) {
 
 /* register -> stdout */
 static inline void opcode_printr (struct vm *vm) {
+	rlockmem(vm);
 	word reg = vm->heap[++vm->pc];
+	frlockmem(vm);
 	word value = vm->registers[reg];
 	printf("%c%c%c%c", 
 		(value >> 24) & 0xFF,
@@ -28,8 +30,10 @@ static inline void opcode_printr (struct vm *vm) {
 
 /* heap -> stdout */
 static inline void opcode_printh (struct vm *vm) {
+	rlockmem(vm);
 	word addr = vm->heap[++vm->pc];
 	word value = vm->heap[addr];
+	frlockmem(vm);
 	printf("%c%c%c%c", 
 		(value >> 24) & 0xFF,
 		(value >> 16) & 0xFF,
@@ -40,7 +44,9 @@ static inline void opcode_printh (struct vm *vm) {
 
 /* inline -> stdout */
 static inline void opcode_printl (struct vm *vm) {
+	rlockmem(vm);
 	word value = vm->heap[++vm->pc];
+	frlockmem(vm);
 	printf("%c%c%c%c", 
 		(value >> 24) & 0xFF,
 		(value >> 16) & 0xFF,
@@ -54,7 +60,9 @@ static inline void opcode_printl (struct vm *vm) {
 
 /* interrupt inline */
 static inline void opcode_intl (struct vm *vm) {
+	rlockmem(vm);
 	word value = vm->heap[++vm->pc];
+	frlockmem(vm);
 	vm->interrupts[value](vm);
 }
 

@@ -39,6 +39,9 @@ struct vm {
 	/* interrupts */
 	interrupt_handler *interrupts;
 
+	/* multithredding */
+	unsigned int multi;
+
 	/* data */
 	word registers[64];
 	word *heap;
