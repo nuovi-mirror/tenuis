@@ -49,7 +49,7 @@ and the function being called:
 	...
 
 The stack pointer is to be held in register r63, the stack is to always be
-managed on a word basis, and the stack is to grow downwards.
+managed on a word basis, and the stack is to grow upwards.
 
 It is assumed all registers in the system are available to the current
 function. If the caller needs to save values, they must either push them
