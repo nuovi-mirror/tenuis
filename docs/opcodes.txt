@@ -78,7 +78,7 @@ sub family - Subtract two values
 stack manipulation family - Manipulate a stack
 	pushh		- Push data in memory address onto the stack
 	pushl		- Push literal onto the stack
-	puslr		- Push register onto the stack
+	pushr		- Push register onto the stack
 	popr		- Pop into a register
 	poph 		- Pop into a memory address
 

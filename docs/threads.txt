@@ -5,8 +5,19 @@ number of threads may be spawned. The contents of the register file from
 the thread which is spawning the thread in reference, known as the parent
 thread, is used as the initial register state in the new thread being
 spawned, known as the child thread. The program will exit once the main
-thread exits or a halt is performed.
+thread exits or a halt is performed. When the multi flag in the binary
+header is set, memory locks will be enabled. This allows all memory
+instructions to appear atomic to the application, preventing memory
+races completely. It should be noted that memory operations, specifically
+writes, are a good bit slower with this enabled.
 
-The opcodes related to threading may be disabled if the header does not
-explicitly enable threads. When threads are enabled, all memory operatons
-are to be atomic.
+This may not need to be enabled if threads are not used or the program
+can guarantee two threads will not write to the same address at the
+same time, eg. if the application implements it's own form of locking.
+
+Common cases for this include code that only uses registers, code which
+dedicates explicit regions of memory to each thread, and code that only
+uses memory for stack operations, where each thread has a separate stack
+pointer.
+
+It is encouraged to not use the multi flag unless specifically needed.
