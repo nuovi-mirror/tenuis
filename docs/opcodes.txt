@@ -31,6 +31,17 @@ jmp family - Jump to address
 	jmpnerh		- Jump to address in memory (second argument) if
 			  the packed comparison result in a register (first
 			  argument) does not show equality
+	fjmpzrl		- Fused compare and jump to literal address (second
+			  argument) if the register (first argument) is zero
+	fjmpnerrl	- Fused compare and jump to literal address (third
+			  argument) if the two registers are not equal
+	fjmperrl	- Fused compare and jump to literal address (third
+			  argument) if the two registers are equal
+	fjmpnerll	- Fused compare and jump to literal addresss (third
+			  argument) if the register and literal are not
+			  equal
+	fjmperll	- Fused compare and jump to literal address (third
+			  argument) if the register and literal are equal
 
 cmp family - Compare two values
 	cmprrr		- Compare two registers and write the packed
