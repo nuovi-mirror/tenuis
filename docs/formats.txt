@@ -1,0 +1,35 @@
+The program header is used to define aspects of the program, such as
+how much memory it requires, how much of that is allocated to code
+and data regions, the initial stack pointer to use, the entry point of
+the program, and so on. This header follows the format of
+
+	0  : magic number (expected: ASCII 'VMBC')
+	1  : bytecode version (expected: 1)
+	2  : size of the header (expected: 16 words (16))
+	3  : [RESERVED]
+	4  : size of the code region to allocate onto program memory
+	5  : size of the data region to allocate onto program memory
+	6  : entry address of the program
+	7  : [RESERVED]
+	8  : total size of memory to allocate for the program
+	9  : address to initialize the stack pointer to
+	10 : [RESERVED]
+	11 : [RESERVED]
+	12 : [RESERVED]
+	13 : [RESERVED]
+	14 : [RESERVED]
+	15 : [RESERVED]
+
+The size of the code region + the size of the data region must NOT be
+greater than the total program memory.
+
+The program entry point must NOT be less than zero or greater than the
+total program memory.
+
+The initial stack pointer must NOT be less than zero or greater than the
+total program memory.
+
+Instructions are encoded as words; one word is used for the instruction
+itself, followed by one word per operand. The instruction itself is used
+to determine how many operands there should be, as well as what the
+operands represent.

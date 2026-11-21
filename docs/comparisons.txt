@@ -1,0 +1,16 @@
+Comparison operations return a packed bitmask representation of several
+operations performed on the two numbers. This mask is defined as one word
+with bits set if the operation performed was true. The format is:
+
+
+	0	:	set if left == right
+	1	:	set if left !== right
+	2	:	set if left > right
+	3	:	set if left !> right
+	4	:	set if left < right
+ 	5	:	set if left !< right
+        6	:	set if left >= right
+        7	:	set if left !>= right
+	8	:	set if left <= right
+	9	:	set if left !<= right
+	11 - 31 :	[RESERVED]

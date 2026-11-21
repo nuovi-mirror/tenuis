@@ -1,0 +1,79 @@
+load family - Load one value into another
+	loadlr 		- Load literal into register
+	loadrr 		- Load register into register
+	loadhr 		- Load data at memory address n into register
+	loadhh 		- Load data at memory address n into a memory
+			  address
+	loadrh 		- Load data at register into memory address n
+	loadlh 		- Load literal into memory address n
+	loadfhirr 	- Load data at memory address held in a register
+			  into a register
+	loadrfhir	- Load data from a register into a memory address
+			  held in a register
+
+jmp family - Jump to address
+	jmpl		- Jump to literal address
+	jmperl		- Jump to literal address (second argument) if
+			  packed comparison result in register (first
+			  argument) shows equality
+	jmperr		- Jump to address in register (second argument) if
+			  packed comparison result in register (first
+			  argument) shows equality
+	jmperh		- Jump to address in memory (second argument) if
+			  the packed comparison result in a register (first
+			  argument) shows equality
+	jmpnerl		- Jump to literal address (second argument) if the
+			  packed comparison result in register (first
+			  argument) does not show equality
+	jmpnerr		- Jump to address in register (second argument) if
+			  the packed comparison result in register (first
+			  argument) does not show equality
+	jmpnerh		- Jump to address in memory (second argument) if
+			  the packed comparison result in a register (first
+			  argument) does not show equality
+
+cmp family - Compare two values
+	cmprrr		- Compare two registers and write the packed
+			  bitmap result into the third register
+
+add family - Add two values
+	addrrr		- Add two registers and write the result into the
+			  third register
+	addllr		- Add two literals and write the result into a
+			  register
+	addlrr		- Add a literal and a register and write the result
+			  into a register
+	addhhh		- Add the data in two memory addresses and store
+			  result to the third memory address
+	addhhr		- Add the data in two memory addresses and store
+			  the result into a register
+	addllh		- Add two literals and store the result to a memory
+			  address
+
+sub family - Subtract two values
+	subrrr		- Subtract the two registers and write the result
+			  into the third register
+	subllr		- Subtract the two literals and write the result
+			  into a register
+	sublrr		- Subtract the literal and the register and write
+			  the result into a register
+	subhhh		- Subtract the two values in memory and write the
+			  result into memory
+	subhhr		- Subtract the two values in memory and write the
+			  result into a register
+	subllh		- Subtract two literals and write the result into
+			  memory
+
+stack manipulation family - Manipulate a stack
+	pushh		- Push data in memory address onto the stack
+	pushl		- Push literal onto the stack
+	puslr		- Push register onto the stack
+	popr		- Pop into a register
+	poph 		- Pop into a memory address
+
+Interrupts - Perform an interrupt
+	intl		- Perform an interrupt at literal
+
+Miscelanious functions
+	nop		- No operation
+	halt		- Halt the processor	

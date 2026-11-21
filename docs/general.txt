@@ -1,0 +1,11 @@
+This is a simple and fast word oriented virtual machine. 64 general
+purpose registers exist, along with an arbitrary number of words of
+memory of a size requested by the program. This is a CISC machine
+with many expressive, highly specialized instructions and real memory
+to memory operations. External interfaces are interacted with via
+generating interrupts, which hand control over to the code path
+implementing the routine. These interfaces are used for things like
+printing text, generating random data, and so on. In this architecture,
+all operations act on words, which is a 32-bit big endian byte, unless
+specified otherwise. Registers are one word, memory is word addressed,
+and so on. Point is, it is all words.

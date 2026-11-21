@@ -1,0 +1,13 @@
+0 - Print a string of ASCII text
+	Reads memory address at register 0 for n words specified by
+	register 1 and writes them to standard output.
+
+1 - Generate random data
+	Writes n cryptographically secure random words specified by
+	register 1 to the memory address specified by register 0.
+
+2 - Convert a word to a string
+	Reads the word in register 0 and converts it into ASCII text.
+	Writes the string to the memory address specified by register 1
+	with a buffer size of register 2. Writes the number of words
+	written to register 0.

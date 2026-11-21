@@ -1,0 +1,57 @@
+The calling convention is fully stack based. Registers are not involved.
+When calling a function, the stack should appear to the function being
+called as
+
+	--- top of stack ---
+	Return address   ---
+	Argument count   ---
+	Argument 1       ---
+	Argument 2       ---
+	Argument 3       ---
+	...              ---
+
+The argument count states how many arguments were pushed onto the stack.
+
+The stack, when returning from a function, should appear as
+
+	--- top of stack ---
+	Return count     ---
+	Return 1         ---
+	Return 2         ---
+	...              ---
+
+eg. a piece of code for the caller, assuming the argument count and return
+count are defined ahead of time to be 3 and 2, respectively:
+
+	...
+	pushl 3			; argument 3
+	pushl 2			; argument 2
+	pushl 1			; argument 1
+	pushl 3			; argument count
+	pushl return		; return address
+return:
+	popr r0			; not required; known ahead of time
+	popr r0			; return 1
+	popr r1			; return 2
+	...
+
+and the function being called:
+
+	popr r0			; return address
+	popr r1			; not required; known ahead of time
+	popr r1			; argument 1
+	popr r2			; argument 2
+	...
+	pushl 2			; return 2
+	pushl 1			; return 1
+	pushl 2			; return count
+	jmpr r0			; return
+	...
+
+The stack pointer is to be held in register r63, the stack is to always be
+managed on a word basis, and the stack is to grow downwards.
+
+It is assumed all registers in the system are available to the current
+function. If the caller needs to save values, they must either push them
+onto the stack before the call or allocate a dedicated memory region
+for them.
