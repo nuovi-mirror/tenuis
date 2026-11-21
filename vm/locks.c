@@ -8,25 +8,32 @@
  * wlockmem() before writting it, calling frlockmem() and fwlockmem()
  * to unlock them respecivly */
 
-/* XXX C11 needed for this; could be replaced by a POSIX pthread_mutex
- * backend, but this is easier to reason about */
+/* counter readers shows the number of readers currently and one to
+ * show if a writter is requesting. If a writter is requesting, a
+ * reader must wait until they stop. When a writter is requesting, it
+ * must wait until the reader counter hits zero. This makes it so there
+ * can be many readers with only one writter, which is the most common
+ * path here */
+
+/* XXX C11 needed for this; could be replaced by a POSIX
+ * backend, but this method is easier to reason about */
 
 static inline void rlockmem (struct vm *vm) {
 	if (vm->multi == 0) return;
-	while (atomic_load(&writelock) != 0) ;	/* wait for no writers */
+	while (atomic_load(&writelock) == 1) ;	/* wait for no writers */
 	atomic_fetch_add(&readers, 1);		/* add a reader */
 }
 
 static inline void frlockmem (struct vm *vm) {
 	if (vm->multi == 0) return;
-	atomic_fetch_add(&readers, 1);		/* remove a reader */
+	atomic_fetch_sub(&readers, 1);		/* remove a reader */
 }
 
 static inline void wlockmem (struct vm *vm) {
 	if (vm->multi == 0) return;
-	while (atomic_load(&writelock) == 0) ;  /* wait for write lock to become free */
+	while (atomic_load(&writelock) == 1) ;  /* wait for write lock */
 	atomic_store(&writelock, 1);		/* lock the write lock */
-	while (atomic_load(&readers)) ;	/* wait for no readers */
+	while (atomic_load(&readers) > 0) ;	/* wait for readers */
 }
 
 static inline void fwlockmem (struct vm *vm) {
