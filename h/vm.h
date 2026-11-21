@@ -101,6 +101,11 @@ void interpret (struct vm *vm);
 #define VMOPCODE_JMPNERR	0x27
 #define VMOPCODE_JMPNERH	0x28
 #define VMOPCODE_LOADRFHIR	0x29
+#define VMOPCODE_FJMPZRL	0x2A
+#define VMOPCODE_FJMPNERRL	0x2B
+#define VMOPCODE_FJMPERRL	0x2C
+#define VMOPCODE_FJMPERLL	0x2D
+#define VMOPCODE_FJMPNERLL	0x2E
 
 /* instruction handlers */
 void opcode_nop 	(struct vm *vm);
@@ -145,6 +150,11 @@ void opcode_jmpnerh	(struct vm *vm);
 void opcode_jmpnerl	(struct vm *vm);
 void opcode_jmpnerr	(struct vm *vm);
 void opcode_loadrfhir	(struct vm *vm);
+void opcode_fjmpzrl	(struct vm *vm);
+void opcode_fjmperrl	(struct vm *vm);
+void opcode_fjmpnerrl	(struct vm *vm);
+void opcode_fjmpnerll	(struct vm *vm);
+void opcode_fjmperll	(struct vm *vm);
 
 /* the opcode table */
 static opcode_handler dispatch[] = {
@@ -190,6 +200,11 @@ static opcode_handler dispatch[] = {
 	[VMOPCODE_JMPNERH]	= opcode_jmpnerh,
 	[VMOPCODE_JMPNERR]	= opcode_jmpnerr,
 	[VMOPCODE_LOADRFHIR]	= opcode_loadrfhir,
+	[VMOPCODE_FJMPZRL]	= opcode_fjmpzrl,
+	[VMOPCODE_FJMPERRL]	= opcode_fjmperrl,
+	[VMOPCODE_FJMPNERRL]	= opcode_fjmpnerrl,
+	[VMOPCODE_FJMPERLL]	= opcode_fjmperll,
+	[VMOPCODE_FJMPNERLL]	= opcode_fjmpnerll,
 };
 
 #endif

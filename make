@@ -2,7 +2,7 @@
 
 cc="cc"
 cflags="-Wall -Wextra -std=c99 -O2 -pipe -pedantic-errors -Ih"
-ldflags=""
+ldflags="-flto"
 
 make_vm() {
 	cmd="$cc $ldflags $cflags \
@@ -29,6 +29,8 @@ make() {
 	make_vm
 	make_as
 }
+
+mkdir -p ./bin/
 
 case "$1" in
 	"as") make_as ;;

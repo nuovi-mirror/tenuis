@@ -49,6 +49,11 @@ int instruction_size(const char *mnemonic) {
 	if (strcmp(mnemonic, "jmpnerh") == 0) return 3;
 	if (strcmp(mnemonic, "jmpnerr") == 0) return 3;
 	if (strcmp(mnemonic, "jmpnerl") == 0) return 3;
+	if (strcmp(mnemonic, "fjmpzrl") == 0) return 3;
+	if (strcmp(mnemonic, "fjmpnerrl") == 0) return 4;
+	if (strcmp(mnemonic, "fjmpnerll") == 0) return 4;
+	if (strcmp(mnemonic, "fjmperrl") == 0) return 4;
+	if (strcmp(mnemonic, "fjmperll") == 0) return 4;
 
 	return -1;
 }
@@ -275,6 +280,50 @@ void assemble_instruction(const ParsedLine *line) {
 
 		emit_code(VMOPCODE_JMPR);
 		emit_code(get_register(line->operands[0]));
+	}
+
+	else if (strcmp(op, "fjmpzrl") == 0) {
+		require_operands(line, 2);
+
+		emit_code(VMOPCODE_FJMPZRL);
+		emit_code(get_register(line->operands[0]));
+		emit_code(get_literal(line->operands[1]));
+	}
+
+	else if (strcmp(op, "fjmperrl") == 0) {
+		require_operands(line, 3);
+
+		emit_code(VMOPCODE_FJMPERRL);
+		emit_code(get_register(line->operands[0]));
+		emit_code(get_register(line->operands[1]));
+		emit_code(get_literal(line->operands[2]));
+	}
+
+	else if (strcmp(op, "fjmpnerrl") == 0) {
+		require_operands(line, 3);
+
+		emit_code(VMOPCODE_FJMPNERRL);
+		emit_code(get_register(line->operands[0]));
+		emit_code(get_register(line->operands[1]));
+		emit_code(get_literal(line->operands[2]));
+	}
+
+	else if (strcmp(op, "fjmperll") == 0) {
+		require_operands(line, 3);
+
+		emit_code(VMOPCODE_FJMPERLL);
+		emit_code(get_register(line->operands[0]));
+		emit_code(get_literal(line->operands[1]));
+		emit_code(get_literal(line->operands[2]));
+	}
+
+	else if (strcmp(op, "fjmpnerll") == 0) {
+		require_operands(line, 3);
+
+		emit_code(VMOPCODE_FJMPNERLL);
+		emit_code(get_register(line->operands[0]));
+		emit_code(get_literal(line->operands[1]));
+		emit_code(get_literal(line->operands[2]));
 	}
 
 	else if (strcmp(op, "cmprrr") == 0) {
