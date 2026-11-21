@@ -1,14 +1,15 @@
 #!/bin/sh
 
 cc="cc"
-#cflags="-Wall -Wextra -std=c99 -O2 -pipe -pedantic-errors -Ih"
 cflags="-Wall -Wextra -std=c11 -O2 -pipe -pedantic-errors -Ih"
-# C11 needed for stdatomic for the memory locking bits
+cflags_vm="-pthread"
+cflags_as="-Itools/as"
 ldflags="-flto"
 
 make_vm() {
-	cmd="$cc $ldflags $cflags \
+	cmd="$cc $ldflags $cflags $cflags_vm \
 		vm/main.c vm/vm.c vm/helper.c vm/nums.c vm/lockdefs.c \
+		vm/threads.c \
 		vm/int/print.c vm/int/rand.c vm/int/wordtostr.c \
 		-o bin/vm"
 	echo "$cmd"
@@ -16,9 +17,8 @@ make_vm() {
 }
 
 make_as() {
-	cmd="$cc $ldflags $cflags \
+	cmd="$cc $ldflags $cflags $cflags_as\
 		tools/as/as.c tools/as/helper.c tools/as/parser.c \
-		-Itools/as/ \
 		-o bin/as"
 	echo "$cmd"
 	eval "$cmd"

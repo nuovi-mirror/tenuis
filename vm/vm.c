@@ -8,6 +8,7 @@
 #include "opcodes/smath.c"
 #include "opcodes/stack.c"
 #include "opcodes/cmp.c"
+#include "opcodes/multi.c"
 
 void interpret (struct vm *vm) {
 	while (vm->pc < vm->codesize) {
@@ -58,6 +59,10 @@ void interpret (struct vm *vm) {
 			case VMOPCODE_FJMPERLL: opcode_fjmperll(vm); break;
 			case VMOPCODE_FJMPNERLL: opcode_fjmpnerrl(vm); break;
 
+			case VMOPCODE_SPAWNLL: opcode_spawnll(vm); break;
+			case VMOPCODE_SPAWNRL: opcode_spawnrl(vm); break;
+			case VMOPCODE_STOP: opcode_stop(vm); break;
+
 			default:
 				vm->error = VMERRFATAL;
 				vm->errcode = VMERRCODEMALFORMEDINPUT;
@@ -67,6 +72,7 @@ void interpret (struct vm *vm) {
 		}
 
 		if (vm->halted == 1) return;
+		if (vm->kill == 1) return;
 		vm->pc++;
 	}
 }

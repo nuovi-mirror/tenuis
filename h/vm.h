@@ -41,6 +41,7 @@ struct vm {
 
 	/* multithredding */
 	unsigned int multi;
+	unsigned int kill;
 
 	/* data */
 	word registers[64];
@@ -108,5 +109,8 @@ void interpret (struct vm *vm);
 #define VMOPCODE_FJMPERRL	0x2C
 #define VMOPCODE_FJMPERLL	0x2D
 #define VMOPCODE_FJMPNERLL	0x2E
+#define VMOPCODE_SPAWNLL	0x2F
+#define VMOPCODE_SPAWNRL	0x30
+#define VMOPCODE_STOP		0x31
 
 #endif

@@ -54,6 +54,9 @@ int instruction_size(const char *mnemonic) {
 	if (strcmp(mnemonic, "fjmpnerll") == 0) return 4;
 	if (strcmp(mnemonic, "fjmperrl") == 0) return 4;
 	if (strcmp(mnemonic, "fjmperll") == 0) return 4;
+	if (strcmp(mnemonic, "spawnrl") == 0) return 3;
+	if (strcmp(mnemonic, "spawnll") == 0) return 3;
+	if (strcmp(mnemonic, "stop") == 0) return 1;
 
 	return -1;
 }
@@ -564,6 +567,28 @@ void assemble_instruction(const ParsedLine *line) {
 
 		emit_code(VMOPCODE_DECH);
 		emit_code(get_address(line->operands[0]));
+	}
+
+	else if (strcmp(op, "spawnrl") == 0) {
+		require_operands(line, 2);
+
+		emit_code(VMOPCODE_SPAWNRL);
+		emit_code(get_register(line->operands[0]));
+		emit_code(get_literal(line->operands[1]));
+	}
+
+	else if (strcmp(op, "spawnll") == 0) {
+		require_operands(line, 2);
+
+		emit_code(VMOPCODE_SPAWNLL);
+		emit_code(get_literal(line->operands[0]));
+		emit_code(get_literal(line->operands[1]));
+	}
+
+	else if (strcmp(op, "stop") == 0) {
+		require_operands(line, 0);
+
+		emit_code(VMOPCODE_STOP);
 	}
 
 	else {
