@@ -6,3 +6,7 @@ the thread which is spawning the thread in reference, known as the parent
 thread, is used as the initial register state in the new thread being
 spawned, known as the child thread. The program will exit once the main
 thread exits or a halt is performed.
+
+The opcodes related to threading may be disabled if the header does not
+explicitly enable threads. When threads are enabled, all memory operatons
+are to be atomic.
