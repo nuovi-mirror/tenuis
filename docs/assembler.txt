@@ -1,0 +1,12 @@
+
+
+
+
+Assembler directives
+
+.data 		- End code section, begin data section
+.word		- One word of data
+
+stack		- Set initial stack pointer
+heap		- Set how many word addresses of memory to initialize
+multi		- Enable thread-safe memory access
