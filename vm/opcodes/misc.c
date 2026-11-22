@@ -13,6 +13,11 @@ static inline void opcode_halt (struct vm *vm) {
 	exit(0);
 }
 
+/* special; used to mark the end of a table */
+static inline void opcode___end (struct vm *vm) {
+	(void)vm;
+}
+
 /* print family */
 
 /* register -> stdout */

@@ -14,12 +14,13 @@
 #include "opcodes/stack.c"
 #include "opcodes/cmp.c"
 #include "opcodes/multi.c"
+#include "opcodes/mul.c"
 
 #if !defined(__GNUC__)
 #error "requires GNU computed goto (GCC/Clang)"
 #endif
 
-#define VMOPCODE_COUNT (VMOPCODE_STOP + 1)
+#define VMOPCODE_COUNT (VMOPCODE___END + 1)
 
 /* dispatch on the opcode at pc without advancing */
 #define DISPATCH() do { \
