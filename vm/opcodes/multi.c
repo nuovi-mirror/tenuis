@@ -27,5 +27,7 @@ static inline void opcode_spawnll (struct vm *vm) {
 
 /* stop the thread */
 static inline void opcode_stop (struct vm *vm) {
-	return; /* XXX works since inline */
+	vm->kill = 1;
+	/* the interpreter loop returns once pc is past the end of the code */
+	vm->pc = vm->codesize;
 }

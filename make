@@ -2,12 +2,8 @@
 
 cc=${cc:-cc}
 cflags=${cflags:--Wall -Wextra -O2 -pipe -Ih}
-cflags_vm=${cflags_vm:--pthread}
-
-if ! "$cc" --version 2>&1 | grep -qi clang; then
-	cflags_vm="$cflags_vm -fno-gcse -fno-crossjumping"
-fi
-cflags_as=${cflags_as:--Itools/as}
+cflags_vm=${cflags_vm:--pthread -fno-gcse -fno-crossjumping}
+cflags_as=${cflags_ad:--Itools/as}
 ldflags=${ldflags:--flto}
 
 make_vm() {

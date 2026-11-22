@@ -9,6 +9,7 @@ static inline void opcode_nop (struct vm *vm) {
 
 /* HALT */
 static inline void opcode_halt (struct vm *vm) {
+	vm->halted = 1;
 	exit(0);
 }
 
