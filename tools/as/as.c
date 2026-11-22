@@ -6,59 +6,40 @@
 #include "vm.h"
 #include "as.h"
 
-int instruction_size(const char *mnemonic) {
-	if (strcmp(mnemonic, "nop") == 0) return 1;
-	if (strcmp(mnemonic, "halt") == 0) return 1;
-	if (strcmp(mnemonic, "jmpl") == 0) return 2;
-	if (strcmp(mnemonic, "jmpr") == 0) return 2;
-	if (strcmp(mnemonic, "printh") == 0) return 2;
-	if (strcmp(mnemonic, "printr") == 0) return 2;
-	if (strcmp(mnemonic, "printl") == 0) return 2;
-	if (strcmp(mnemonic, "loadlh") == 0) return 3;
-	if (strcmp(mnemonic, "loadlr") == 0) return 3;
-	if (strcmp(mnemonic, "loadrr") == 0) return 3;
-	if (strcmp(mnemonic, "loadhh") == 0) return 3;
-	if (strcmp(mnemonic, "loadrh") == 0) return 3;
-	if (strcmp(mnemonic, "loadhr") == 0) return 3;
-	if (strcmp(mnemonic, "cmprrr") == 0) return 4;
-	if (strcmp(mnemonic, "jmperr") == 0) return 3;
-	if (strcmp(mnemonic, "jmperl") == 0) return 3;
-	if (strcmp(mnemonic, "pushr") == 0) return 2;
-	if (strcmp(mnemonic, "popr") == 0) return 2;
-	if (strcmp(mnemonic, "poph") == 0) return 2;
-	if (strcmp(mnemonic, "pushh") == 0) return 2;
-	if (strcmp(mnemonic, "pushl") == 0) return 2;
-	if (strcmp(mnemonic, "intl") == 0) return 2;
-	if (strcmp(mnemonic, "loadfhirr") == 0) return 3;
-	if (strcmp(mnemonic, "loadrfhir") == 0) return 3;
-	if (strcmp(mnemonic, "addrrr") == 0) return 4;
-	if (strcmp(mnemonic, "addllr") == 0) return 4;
-	if (strcmp(mnemonic, "addhhr") == 0) return 4;
-	if (strcmp(mnemonic, "addhhh") == 0) return 4;
-	if (strcmp(mnemonic, "addlrr") == 0) return 4;
-	if (strcmp(mnemonic, "sublrr") == 0) return 4;
-	if (strcmp(mnemonic, "subrrr") == 0) return 4;
-	if (strcmp(mnemonic, "subllr") == 0) return 4;
-	if (strcmp(mnemonic, "subhhh") == 0) return 4;
-	if (strcmp(mnemonic, "subhhr") == 0) return 4;
-	if (strcmp(mnemonic, "incr") == 0) return 2;
-	if (strcmp(mnemonic, "inch") == 0) return 2;
-	if (strcmp(mnemonic, "decr") == 0) return 2;
-	if (strcmp(mnemonic, "dech") == 0) return 2;
-	if (strcmp(mnemonic, "jmperh") == 0) return 3;
-	if (strcmp(mnemonic, "jmpnerh") == 0) return 3;
-	if (strcmp(mnemonic, "jmpnerr") == 0) return 3;
-	if (strcmp(mnemonic, "jmpnerl") == 0) return 3;
-	if (strcmp(mnemonic, "fjmpzrl") == 0) return 3;
-	if (strcmp(mnemonic, "fjmpnerrl") == 0) return 4;
-	if (strcmp(mnemonic, "fjmpnerll") == 0) return 4;
-	if (strcmp(mnemonic, "fjmperrl") == 0) return 4;
-	if (strcmp(mnemonic, "fjmperll") == 0) return 4;
-	if (strcmp(mnemonic, "spawnrl") == 0) return 3;
-	if (strcmp(mnemonic, "spawnll") == 0) return 3;
-	if (strcmp(mnemonic, "stop") == 0) return 1;
+struct opcode_info {
+	const char *name;	/* upper case; the mnemonic is the lower case form */
+	word opcode;
+	const char *operands;	/* one kind letter per operand */
+};
 
-	return -1;
+static const struct opcode_info opcode_table[] = {
+#define OPCODE(name, value, handler, operands) { #name, VMOPCODE_##name, operands },
+#include "opcodes.def"
+#undef OPCODE
+};
+
+#define OPCODE_COUNT (sizeof(opcode_table) / sizeof(opcode_table[0]))
+
+/* the parser lower-cases mnemonics, so compare with the lower-case name */
+static int mnemonic_matches(const char *name, const char *mnemonic) {
+	for (; *name && *mnemonic; name++, mnemonic++)
+		if (tolower((unsigned char)*name) != (unsigned char)*mnemonic) return 0;
+
+	return !*name && !*mnemonic;
+}
+
+static const struct opcode_info *find_opcode(const char *mnemonic) {
+	for (size_t i = 0; i < OPCODE_COUNT; i++)
+		if (mnemonic_matches(opcode_table[i].name, mnemonic)) return &opcode_table[i];
+
+	return NULL;
+}
+
+int instruction_size(const char *mnemonic) {
+	const struct opcode_info *info = find_opcode(mnemonic);
+
+	if (!info) return -1;
+	return 1 + (int)strlen(info->operands);
 }
 
 void first_pass(const char *filename) {
@@ -196,403 +177,22 @@ void first_pass(const char *filename) {
 }
 
 void assemble_instruction(const ParsedLine *line) {
-	const char *op = line->mnemonic;
+	const struct opcode_info *info = find_opcode(line->mnemonic);
 
-	if (strcmp(op, "nop") == 0) {
-		require_operands(line, 0);
-		emit_code(VMOPCODE_NOP);
-	}
+	if (!info) asm_error("unknown instruction during assembly");
 
-	else if (strcmp(op, "halt") == 0) {
-		require_operands(line, 0);
-		emit_code(VMOPCODE_HALT);
-	}
+	require_operands(line, (int)strlen(info->operands));
+	emit_code(info->opcode);
 
-	else if (strcmp(op, "loadlh") == 0) {
-		require_operands(line, 2);
+	for (int i = 0; info->operands[i]; i++) {
+		const char *text = line->operands[i];
 
-		emit_code(VMOPCODE_LOADLH);
-		emit_code(get_literal(line->operands[0]));
-		emit_code(get_address(line->operands[1]));
-	}
-
-	else if (strcmp(op, "loadlr") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_LOADLR);
-		emit_code(get_literal(line->operands[0]));
-		emit_code(get_register(line->operands[1]));
-	}
-
-	else if (strcmp(op, "loadrr") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_LOADRR);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_register(line->operands[1]));
-	}
-
-	else if (strcmp(op, "loadhh") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_LOADHH);
-		emit_code(get_address(line->operands[0]));
-		emit_code(get_address(line->operands[1]));
-	}
-
-	else if (strcmp(op, "loadrh") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_LOADRH);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_address(line->operands[1]));
-	}
-
-	else if (strcmp(op, "loadhr") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_LOADHR);
-		emit_code(get_address(line->operands[0]));
-		emit_code(get_register(line->operands[1]));
-	}
-
-	else if (strcmp(op, "printh") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_PRINTH);
-		emit_code(get_address(line->operands[0]));
-	}
-
-	else if (strcmp(op, "printr") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_PRINTR);
-		emit_code(get_register(line->operands[0]));
-	}
-
-	else if (strcmp(op, "printl") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_PRINTL);
-		emit_code(get_literal(line->operands[0]));
-	}
-
-	else if (strcmp(op, "jmpl") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_JMPL);
-		emit_code(get_address(line->operands[0]));
-	}
-
-	else if (strcmp(op, "jmpr") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_JMPR);
-		emit_code(get_register(line->operands[0]));
-	}
-
-	else if (strcmp(op, "fjmpzrl") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_FJMPZRL);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_literal(line->operands[1]));
-	}
-
-	else if (strcmp(op, "fjmperrl") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_FJMPERRL);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_register(line->operands[1]));
-		emit_code(get_literal(line->operands[2]));
-	}
-
-	else if (strcmp(op, "fjmpnerrl") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_FJMPNERRL);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_register(line->operands[1]));
-		emit_code(get_literal(line->operands[2]));
-	}
-
-	else if (strcmp(op, "fjmperll") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_FJMPERLL);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_literal(line->operands[1]));
-		emit_code(get_literal(line->operands[2]));
-	}
-
-	else if (strcmp(op, "fjmpnerll") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_FJMPNERLL);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_literal(line->operands[1]));
-		emit_code(get_literal(line->operands[2]));
-	}
-
-	else if (strcmp(op, "cmprrr") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_CMPRRR);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_register(line->operands[1]));
-		emit_code(get_register(line->operands[2]));
-	}
-
-	else if (strcmp(op, "jmperr") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_JMPERR);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_register(line->operands[1]));
-	}
-
-	else if (strcmp(op, "jmperl") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_JMPERL);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_literal(line->operands[1]));
-	}
-
-	else if (strcmp(op, "jmperh") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_JMPERH);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_address(line->operands[1]));
-	}
-
-	else if (strcmp(op, "jmpnerl") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_JMPNERL);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_literal(line->operands[1]));
-	}
-
-	else if (strcmp(op, "jmpnerr") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_JMPNERR);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_register(line->operands[1]));
-	}
-
-	else if (strcmp(op, "jmpnerh") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_JMPNERH);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_address(line->operands[1]));
-	}
-
-	else if (strcmp(op, "pushr") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_PUSHR);
-		emit_code(get_register(line->operands[0]));
-	}
-
-	else if (strcmp(op, "popr") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_POPR);
-		emit_code(get_register(line->operands[0]));
-	}
-
-	else if (strcmp(op, "poph") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_POPH);
-		emit_code(get_literal(line->operands[0]));
-	}
-
-	else if (strcmp(op, "pushl") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_PUSHL);
-		emit_code(get_literal(line->operands[0]));
-	}
-
-	else if (strcmp(op, "pushh") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_PUSHH);
-		emit_code(get_address(line->operands[0]));
-	}
-
-
-	else if (strcmp(op, "intl") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_INTL);
-		emit_code(get_literal(line->operands[0]));
-	}
-
-	else if (strcmp(op, "loadfhirr") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_LOADFHIRR);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_register(line->operands[1]));
-	}
-
-	else if (strcmp(op, "loadrfhir") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_LOADRFHIR);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_register(line->operands[1]));
-	}
-
-	else if (strcmp(op, "addrrr") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_ADDRRR);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_register(line->operands[1]));
-		emit_code(get_register(line->operands[2]));
-	}
-
-	else if (strcmp(op, "addllr") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_ADDLLR);
-		emit_code(get_literal(line->operands[0]));
-		emit_code(get_literal(line->operands[1]));
-		emit_code(get_register(line->operands[2]));
-	}
-
-	else if (strcmp(op, "addhhr") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_ADDHHR);
-		emit_code(get_address(line->operands[0]));
-		emit_code(get_address(line->operands[1]));
-		emit_code(get_register(line->operands[2]));
-	}
-
-	else if (strcmp(op, "addhhh") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_ADDHHH);
-		emit_code(get_address(line->operands[0]));
-		emit_code(get_address(line->operands[1]));
-		emit_code(get_address(line->operands[2]));
-	}
-
-	else if (strcmp(op, "addlrr") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_ADDLRR);
-		emit_code(get_literal(line->operands[0]));
-		emit_code(get_register(line->operands[1]));
-		emit_code(get_register(line->operands[2]));
-	}
-
-	else if (strcmp(op, "sublrr") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_SUBLRR);
-		emit_code(get_literal(line->operands[0]));
-		emit_code(get_register(line->operands[1]));
-		emit_code(get_register(line->operands[2]));
-	}
-
-	else if (strcmp(op, "subllr") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_SUBLLR);
-		emit_code(get_literal(line->operands[0]));
-		emit_code(get_literal(line->operands[1]));
-		emit_code(get_register(line->operands[2]));
-	}
-
-	else if (strcmp(op, "subrr") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_SUBRRR);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_register(line->operands[1]));
-		emit_code(get_register(line->operands[2]));
-	}
-
-	else if (strcmp(op, "subhhr") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_SUBHHR);
-		emit_code(get_address(line->operands[0]));
-		emit_code(get_address(line->operands[1]));
-		emit_code(get_register(line->operands[2]));
-	}
-
-	else if (strcmp(op, "subhhh") == 0) {
-		require_operands(line, 3);
-
-		emit_code(VMOPCODE_SUBHHH);
-		emit_code(get_address(line->operands[0]));
-		emit_code(get_address(line->operands[1]));
-		emit_code(get_address(line->operands[2]));
-	}
-
-	else if (strcmp(op, "incr") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_INCR);
-		emit_code(get_register(line->operands[0]));
-	}
-
-	else if (strcmp(op, "inch") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_INCH);
-		emit_code(get_address(line->operands[0]));
-	}
-
-	else if (strcmp(op, "decr") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_DECR);
-		emit_code(get_register(line->operands[0]));
-	}
-
-	else if (strcmp(op, "dech") == 0) {
-		require_operands(line, 1);
-
-		emit_code(VMOPCODE_DECH);
-		emit_code(get_address(line->operands[0]));
-	}
-
-	else if (strcmp(op, "spawnrl") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_SPAWNRL);
-		emit_code(get_register(line->operands[0]));
-		emit_code(get_literal(line->operands[1]));
-	}
-
-	else if (strcmp(op, "spawnll") == 0) {
-		require_operands(line, 2);
-
-		emit_code(VMOPCODE_SPAWNLL);
-		emit_code(get_literal(line->operands[0]));
-		emit_code(get_literal(line->operands[1]));
-	}
-
-	else if (strcmp(op, "stop") == 0) {
-		require_operands(line, 0);
-
-		emit_code(VMOPCODE_STOP);
-	}
-
-	else {
-		asm_error("unknown instruction during assembly");
+		switch (info->operands[i]) {
+			case 'l': emit_code(get_literal(text)); break;
+			case 'r': emit_code(get_register(text)); break;
+			case 'h': emit_code(get_address(text)); break;
+			default: asm_error("bad operand kind in opcodes.def");
+		}
 	}
 }
 

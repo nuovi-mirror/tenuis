@@ -44,7 +44,7 @@ static inline void opcode_invalid (struct vm *vm) {
 void INTERP (struct vm *vm) {
 	/* one entry per line of opcodes.def */
 	static const void *const dispatch[VMOPCODE_COUNT] = {
-#define OPCODE(name, value, handler) [VMOPCODE_##name] = &&L_##name,
+#define OPCODE(name, value, handler, operands) [VMOPCODE_##name] = &&L_##name,
 #include "opcodes.def"
 #undef OPCODE
 	};
@@ -52,7 +52,7 @@ void INTERP (struct vm *vm) {
 	DISPATCH();
 
 	/* one label per line of opcodes.def */
-#define OPCODE(name, value, handler) L_##name: opcode_##handler(vm); NEXT();
+#define OPCODE(name, value, handler, operands) L_##name: opcode_##handler(vm); NEXT();
 #include "opcodes.def"
 #undef OPCODE
 

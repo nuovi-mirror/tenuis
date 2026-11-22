@@ -63,9 +63,8 @@ void interpret (struct vm *vm);
 void interpret_single (struct vm *vm);	/* memory locks compiled out */
 void interpret_multi (struct vm *vm);	/* memory locks always on */
 
-/* opcodes: VMOPCODE_<NAME> constants, generated from opcodes.def */
 enum {
-#define OPCODE(name, value, handler) VMOPCODE_##name = value,
+#define OPCODE(name, value, handler, operands) VMOPCODE_##name = value,
 #include "opcodes.def"
 #undef OPCODE
 };
