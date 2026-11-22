@@ -132,3 +132,14 @@ static inline void opcode_fjmpnerll (struct vm *vm) {
 	word num0 = vm->registers[reg];
 	if (num0 != num1) vm->pc = jmp - 1;
 }
+
+/* fused decrement and jump if not zero */
+static inline void opcode_loopnzrl (struct vm *vm) {
+	rlockmem(vm);
+	word reg = vm->heap[++vm->pc];
+	word addr = vm->heap[++vm->pc];
+	frlockmem(vm);
+	if (--vm->registers[reg] != 0) vm->pc = addr - 1;
+	/* XXX so GCC cannot make this a conditional move on pc */
+	else __asm__ volatile ("");
+}

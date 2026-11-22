@@ -61,3 +61,59 @@ static inline void opcode_subhhh (struct vm *vm) {
 	vm->heap[dst] = result;
 	fwlockmem(vm);
 }
+
+/* inline - inline -> heap */
+static inline void opcode_subllh (struct vm *vm) {
+	wlockmem(vm);
+	word num0 = vm->heap[++vm->pc];
+	word num1 = vm->heap[++vm->pc];
+	word addr = vm->heap[++vm->pc];
+	word result = num0 - num1;
+	vm->heap[addr] = result;
+	fwlockmem(vm);
+}
+
+static inline void opcode_subrrh (struct vm *vm) {
+	wlockmem(vm);
+	word reg0 = vm->heap[++vm->pc];
+	word reg1 = vm->heap[++vm->pc];
+	word addr = vm->heap[++vm->pc];
+	word num0 = vm->registers[reg0];
+	word num1 = vm->registers[reg1];
+	word result = num0 - num1;
+	vm->heap[addr] = result;
+	fwlockmem(vm);
+}
+
+static inline void opcode_sublhh (struct vm *vm) {
+	wlockmem(vm);
+	word num0 = vm->heap[++vm->pc];
+	word addr0 = vm->heap[++vm->pc];
+	word dest = vm->heap[++vm->pc];
+	word num1 = vm->heap[addr0];
+	word result = num0 - num1;
+	vm->heap[dest] = result;
+	fwlockmem(vm);
+}
+
+static inline void opcode_sublhr (struct vm *vm) {
+	rlockmem(vm);
+	word num0 = vm->heap[++vm->pc];
+	word addr0 = vm->heap[++vm->pc];
+	word reg0 = vm->heap[++vm->pc];
+	word num1 = vm->heap[addr0];
+	frlockmem(vm);
+	word result = num0 - num1;
+	vm->registers[reg0] = result;
+}
+
+static inline void opcode_sublrh (struct vm *vm) {
+	wlockmem(vm);
+	word num0 = vm->heap[++vm->pc];
+	word reg0 = vm->heap[++vm->pc];
+	word addr0 = vm->heap[++vm->pc];
+	word num1 = vm->registers[reg0];
+	word result = num0 - num1;
+	vm->heap[addr0] = result;
+	fwlockmem(vm);
+}
