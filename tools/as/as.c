@@ -705,8 +705,8 @@ int main(int argc, char **argv) {
 	printf("Assembled %zu code words and %zu data words.\n", code_count, data_count);
 	printf("Heap size: %u words\n", (unsigned int)heap_size);
 	printf("Entry point: %u\n", (unsigned int)entry_address);
-	if (multi == 0) printf("Multiprocessing disabled\n");
-	else if (multi == 1) printf("Multiprocessing enabled\n");
+	if (multi == 0) printf("Processor memory locks disabled\n");
+	else if (multi == 1) printf("Processor memory locks enabled\n");
 
 	free(code);
 	free(data);

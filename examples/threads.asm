@@ -9,6 +9,9 @@ thread:
 
 start:
 	spawnll 32, thread
+	spawnll 32, thread
+	spawnll 32, thread
+	spawnll 32, thread
 loop:
 	jmpl loop
 
