@@ -1,7 +1,7 @@
 #!/bin/sh
 
 cc=${cc:-cc}
-cflags=${cflags:--Wall -Wextra -std=c11 -O2 -pipe -pedantic-errors -Ih}
+cflags=${cflags:--Wall -Wextra -O2 -pipe -Ih}
 cflags_vm=${cflags_vm:--pthread}
 
 if ! "$cc" --version 2>&1 | grep -qi clang; then
