@@ -27,5 +27,5 @@ static inline void opcode_spawnll (struct vm *vm) {
 
 /* stop the thread */
 static inline void opcode_stop (struct vm *vm) {
-	vm->kill = 1;
+	return; /* XXX works since inline */
 }

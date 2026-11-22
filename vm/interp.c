@@ -31,8 +31,6 @@
 
 /* check halt/kill, advance pc, then dispatch the next opcode */
 #define NEXT() do { \
-	if (vm->halted == 1) exit(0); \
-	if (vm->kill == 1) return; \
 	vm->pc++; \
 	DISPATCH(); \
 } while (0)

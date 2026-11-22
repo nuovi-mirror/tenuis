@@ -1,17 +1,14 @@
 #!/bin/sh
 
-cc="cc"
-cflags="-Wall -Wextra -std=c11 -O2 -pipe -pedantic-errors -Ih"
-cflags_vm="-pthread"
+cc=${cc:-cc}
+cflags=${cflags:--Wall -Wextra -std=c11 -O2 -pipe -pedantic-errors -Ih}
+cflags_vm=${cflags_vm:--pthread}
 
-# GCC merges the per-opcode computed gotos in vm/interp.c into a few shared
-# indirect jumps, which defeats the point of using them. Keep them separate.
-# (clang does not do this and does not support these flags)
 if ! "$cc" --version 2>&1 | grep -qi clang; then
 	cflags_vm="$cflags_vm -fno-gcse -fno-crossjumping"
 fi
-cflags_as="-Itools/as"
-ldflags="-flto"
+cflags_as=${cflags_as:--Itools/as}
+ldflags=${ldflags:--flto}
 
 make_vm() {
 	cmd="$cc $ldflags $cflags $cflags_vm \
