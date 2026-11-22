@@ -42,6 +42,8 @@ jmp family - Jump to address
 			  equal
 	fjmperll	- Fused compare and jump to literal address (third
 			  argument) if the register and literal are equal
+	loopnzrl	- Fused decrement reguster and jump to literal
+			  address if the register is not zero
 
 cmp family - Compare two values
 	cmprrr		- Compare two registers and write the packed
@@ -60,6 +62,14 @@ add family - Add two values
 			  the result into a register
 	addllh		- Add two literals and store the result to a memory
 			  address
+	addlhr		- Add a literal to the data in a memory address and
+			  store to a register
+	addlrh		- Add a literal to the data in a register and stote
+			  to a memory address
+	addhrr		- Add data in a memory address to data in a
+			  register and store to a register
+	addrhh		- Add data in a register and a memory address and
+			  store to a memory address
 
 sub family - Subtract two values
 	subrrr		- Subtract the two registers and write the result
@@ -74,6 +84,36 @@ sub family - Subtract two values
 			  result into a register
 	subllh		- Subtract two literals and write the result into
 			  memory
+	sublhr		- Subtract a literal and a data in a memory address
+			  and store to a register
+	sublrh		- Subtract a literal and data in a register and
+			  store to a memory address
+	subhrr		- Subtract data in a memory address and a
+			  register and store to a register
+	subrhh		- Subtract data in a register and in a memory
+			  address and store to a memory address
+
+mul family - Multiply two values
+	mulrrr		- Multiply two registers and write the result into
+			  a register
+	mulllr		- Multiply two literals and write the result into
+			  a register
+	mullrr		- Multiply a literal and a register and write the
+			  result into a register
+	mulhhh		- Multiply the data in two memory addresses and
+			  store the result into a memory address
+	mulhhr		- Multiply the data in two memory addresses and
+			  store the result into a register
+	mulllh		- Multiply two literals and store the result into
+			  a memory address
+	mullhr		- Multiply a literal and the data in a memory
+			  address and store to a register
+	mullrh		- Multiply a literal and a register and store
+			  the result into a memory address
+	mulhrr		- Multiply the data in a memory address and a
+			  register and store the result into a register
+	mulrhh		- Multiply the data in a register and a memory
+			  address and write the result to a memory address
 
 stack manipulation family - Manipulate a stack
 	pushh		- Push data in memory address onto the stack
