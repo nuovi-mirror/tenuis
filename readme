@@ -6,6 +6,7 @@ little unneeded work per instruction and need as few instructions as
 possible to perform a logical operation.
 
 For example, there is no addressing resolution subsystem; the opcode
-itself knows what its operands are.
+itself knows what its operands are. This is an example of one of the
+many architectural optimizations of the virtual machine.
 
 Please note, this is not close to a release. This is very early.
