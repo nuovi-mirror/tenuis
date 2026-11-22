@@ -60,6 +60,8 @@ unsigned int checkbit (word value, unsigned int bit);
 void wordcmp (word num0, word num1, word *reg);
 
 void interpret (struct vm *vm);
+void interpret_single (struct vm *vm);	/* memory locks compiled out */
+void interpret_multi (struct vm *vm);	/* memory locks always on */
 
 /* opcodes */
 #define VMOPCODE_NOP 		0x00

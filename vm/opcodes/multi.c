@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 /* spawn thread; sp in reg, pc inline */
-void opcode_spawnrl (struct vm *vm) {
+static inline void opcode_spawnrl (struct vm *vm) {
 	printf("started");
 	rlockmem(vm);
 	word reg = vm->heap[++vm->pc];
@@ -17,7 +17,7 @@ void opcode_spawnrl (struct vm *vm) {
 }
 
 /* spawn thread; sp inline, pc inline */
-void opcode_spawnll (struct vm *vm) {
+static inline void opcode_spawnll (struct vm *vm) {
 	rlockmem(vm);
 	word sp = vm->heap[++vm->pc];
 	word addr = vm->heap[++vm->pc];
@@ -26,6 +26,6 @@ void opcode_spawnll (struct vm *vm) {
 }
 
 /* stop the thread */
-void opcode_stop (struct vm *vm) {
+static inline void opcode_stop (struct vm *vm) {
 	vm->kill = 1;
 }

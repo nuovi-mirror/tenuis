@@ -22,19 +22,6 @@ unsigned int checkbit (word value, unsigned int bit) {
 }
 
 void wordcmp (word num0, word num1, word *reg) {
-	/*
-	 *	0	:	set if left == right
-	 *	1	:	set if left !== right
-	 *	2	:	set if left > right
-	 *	3	:	set if left !> right
-         *	4	:	set if left < right
- 	 *	5	:	set if left !< right
-         *	6	:	set if left >= right
-         *	7	:	set if left !>= right
-	 *	8	:	set if left <= right
-	 *	9	:	set if left !<= right
-	 */
-
 	/* XXX naieve implimentation */
 
 	*reg = 0;
