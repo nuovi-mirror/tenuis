@@ -1,4 +1,4 @@
-Tenuis (Latin; thin, precise)is a small and lightweight CISC word machine. 
+Tenuis (Latin; thin, precise) is a small and lightweight CISC word machine. 
 Tenuis is designed to be fast and lightweight, running on machines with 
 very little memory, while still being suited to the needs of 
 higher-performance computing. Tenuis achieves this by trying to perform as 
