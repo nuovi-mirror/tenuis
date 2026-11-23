@@ -10,3 +10,12 @@ itself knows what its operands are. This is an example of one of the
 many architectural optimizations of the virtual machine.
 
 Please note, this is not close to a release. This is very early.
+
+
+todo:
+	- add division opcode
+	- add floating-point opcodes
+	- add more useful fused opcodes
+	- add byte memory opcodes
+	- add an IR to assembler compiler
+	- add an IR optimizer
