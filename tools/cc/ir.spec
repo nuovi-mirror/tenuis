@@ -5,7 +5,7 @@ Type Modifiers: Pointer (pointer to), Aligned (force alignment), Constant
 
 Define (Type) (name) - define a value
 Convert (input) Into (Type) -> (output) - convert a type
-Allocate (count) (Type) -> (name) - Allocate array
+Allocate (count) (Type) -> (name) - Allocate array, returns pointer entry 0
 Goto (label) If (conditional) - Goto statement
 Function ((return(s) types)) (name) ((argument(s) types))- Define a function
 Convert (name) Into (type) -> (name) - Convert a type
@@ -34,8 +34,8 @@ Finish Initialize
 Function (Constant Word Pointer) Main (None)
 	Add a, b -> c
 	Convert c Into Constant Word Pointer -> d /* pointer to c */
-	If error a != 3
+	Goto error If a != 3
 	Return (c)
 error:
-	Return None
+	Return (None)
 Finish Function Main
