@@ -4,141 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "srctoir.h"
+#include "help.h"
 
-static const char *cur_file = "<stdin>";
-static int cur_line = 1;
-
-static _Noreturn void fail (const char *fmt, ...) {
-	va_list ap;
-
-	fprintf(stderr, "srctoir: %s:%d: error: ", cur_file, cur_line);
-	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
-	va_end(ap);
-	fputc('\n', stderr);
-	exit(1);
-}
-
-static void *xmalloc (unsigned long n) {
-	void *p = malloc(n ? n : 1);
-
-	if (!p) { fprintf(stderr, "srctoir: out of memory\n"); exit(1); }
-	return p;
-}
-
-static void *xrealloc (void *p, unsigned long n) {
-	p = realloc(p, n ? n : 1);
-	if (!p) { fprintf(stderr, "srctoir: out of memory\n"); exit(1); }
-	return p;
-}
-
-static char *xstrdup (const char *s) {
-	unsigned long n = strlen(s) + 1;
-	char *d = xmalloc(n);
-
-	memcpy(d, s, n);
-	return d;
-}
-
-
-static void bgrow (Buf *b, unsigned long need) {
-	if (b->len + need + 1 > b->cap) {
-		unsigned long c = b->cap ? b->cap : 256;
-
-		while (c < b->len + need + 1) c *= 2;
-		b->s = xrealloc(b->s, c);
-		b->cap = c;
-	}
-}
-
-static void bputs (Buf *b, const char *s) {
-	unsigned long n = strlen(s);
-
-	bgrow(b, n);
-	memcpy(b->s + b->len, s, n + 1);
-	b->len += n;
-}
-
-static void bputc (Buf *b, char c) {
-	bgrow(b, 1);
-	b->s[b->len++] = c;
-	b->s[b->len] = 0;
-}
-
-static void bvprintf (Buf *b, const char *fmt, va_list ap) {
-	va_list ap2;
-	int n;
-
-	va_copy(ap2, ap);
-	n = vsnprintf(NULL, 0, fmt, ap2);
-	va_end(ap2);
-	bgrow(b, (unsigned long)n);
-	vsnprintf(b->s + b->len, (unsigned long)n + 1, fmt, ap);
-	b->len += (unsigned long)n;
-}
-
-static void bprintf (Buf *b, const char *fmt, ...) {
-	va_list ap;
-
-	va_start(ap, fmt);
-	bvprintf(b, fmt, ap);
-	va_end(ap);
-}
-
-static char *xsprintf (const char *fmt, ...) {
-	Buf b = {0};
-	va_list ap;
-
-	va_start(ap, fmt);
-	bvprintf(&b, fmt, ap);
-	va_end(ap);
-	if (!b.s) return xstrdup("");
-	return b.s;
-}
-
-static const char *bstr (Buf *b) { return b->s ? b->s : ""; }
-
-static Tok *toks;
-static int ntoks, tp;
-
-static int hexval (int c) {
-	if (c >= '0' && c <= '9') return c - '0';
-	if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-	if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-	return -1;
-}
-
-/* p points just after the backslash */
-static int lex_escape (const char **pp) {
-	const char *p = *pp;
-	int c = *p++;
-
-	switch (c) {
-		case 'n': c = '\n'; break;
-		case 'r': c = '\r'; break;
-		case 't': c = '\t'; break;
-		case '0': c = 0; break;
-		case '\\': c = '\\'; break;
-		case '"': c = '"'; break;
-		case '\'': c = '\''; break;
-		case 'x':
-			if (hexval(p[0]) < 0 || hexval(p[1]) < 0) fail("\\x needs two hex digits");
-			c = hexval(p[0]) * 16 + hexval(p[1]);
-			p += 2;
-			break;
-		default: fail("unknown escape \\%c", c);
-	}
-	*pp = p;
-	return c;
-}
-
-static const char *puncts3[] = { "<<=", ">>=", NULL };
-static const char *puncts2[] = {
-	"<<", ">>", "<=", ">=", "==", "!=", "&&", "||", "++", "--",
-	"+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", NULL
-};
-
-static void tok_push (Tok **v, int *n, int *cap, Tok t) {
+void tok_push (Tok **v, int *n, int *cap, Tok t) {
 	if (*n >= *cap) {
 		*cap = *cap ? *cap * 2 : 256;
 		*v = xrealloc(*v, (unsigned long)*cap * sizeof **v);
@@ -146,7 +14,7 @@ static void tok_push (Tok **v, int *n, int *cap, Tok t) {
 	(*v)[(*n)++] = t;
 }
 
-static Tok *lex (const char *src, int *count) {
+Tok *lex (const char *src, int *count) {
 	Tok *v = NULL;
 	int n = 0, cap = 0, line = 1, bol = 1;
 	const char *p = src;
@@ -268,50 +136,44 @@ static Tok *lex (const char *src, int *count) {
 	return v;
 }
 
-/* ------------------------------------------------------------------ */
-/* token stream helpers                                               */
+Tok *cur (void) { 
+	return &toks[tp]; 
+}
 
-static Tok *cur (void) { return &toks[tp]; }
-
-static Tok *peekn (int k) {
+Tok *peekn (int k) {
 	int i = tp + k;
 
 	if (i >= ntoks) i = ntoks - 1;
 	return &toks[i];
 }
 
-static void advance (void) {
+void advance (void) {
 	if (tp < ntoks - 1) tp++;
 	cur_line = toks[tp].line;
 }
 
-static int tok_is_p (Tok *t, const char *s) { return t->kind == T_PUNCT && strcmp(t->text, s) == 0; }
-static int tok_is_kw (Tok *t, const char *s) { return t->kind == T_IDENT && strcmp(t->text, s) == 0; }
-static int is_p (const char *s) { return tok_is_p(cur(), s); }
-static int is_kw (const char *s) { return tok_is_kw(cur(), s); }
+int tok_is_p (Tok *t, const char *s) { return t->kind == T_PUNCT && strcmp(t->text, s) == 0; }
+int tok_is_kw (Tok *t, const char *s) { return t->kind == T_IDENT && strcmp(t->text, s) == 0; }
+int is_p (const char *s) { return tok_is_p(cur(), s); }
+int is_kw (const char *s) { return tok_is_kw(cur(), s); }
 
-static int accept_p (const char *s) {
+int accept_p (const char *s) {
 	if (is_p(s)) { advance(); return 1; }
 	return 0;
 }
 
-static void expect_p (const char *s) {
+void expect_p (const char *s) {
 	if (!accept_p(s)) fail("expected '%s'", s);
 }
 
-static const char *reserved[] = {
-	"word", "byte", "bool", "void", "const", "if", "else", "while", "for", "do",
-	"break", "continue", "return", "true", "false", "null", "sizeof", NULL
-};
-
-static int is_reserved (const char *s) {
+int is_reserved (const char *s) {
 	int i;
 
 	for (i = 0; reserved[i]; i++) if (strcmp(s, reserved[i]) == 0) return 1;
 	return 0;
 }
 
-static char *expect_ident (void) {
+char *expect_ident (void) {
 	char *s;
 
 	if (cur()->kind != T_IDENT || is_reserved(cur()->text)) fail("expected an identifier");
@@ -320,13 +182,12 @@ static char *expect_ident (void) {
 	return s;
 }
 
-static int tok_starts_type (Tok *t) {
+int tok_starts_type (Tok *t) {
 	return t->kind == T_IDENT && (strcmp(t->text, "word") == 0 || strcmp(t->text, "byte") == 0 ||
 		strcmp(t->text, "bool") == 0 || strcmp(t->text, "void") == 0 || strcmp(t->text, "const") == 0);
 }
 
-/* index of the ')' matching the '(' at token index i, or -1 */
-static int match_paren (int i) {
+int match_paren (int i) {
 	int depth = 0;
 
 	for (; i < ntoks; i++) {
@@ -337,27 +198,24 @@ static int match_paren (int i) {
 	return -1;
 }
 
-/* ------------------------------------------------------------------ */
-/* types and symbols                                                  */
-
-static Type mkt (Base b) {
+Type mkt (Base b) {
 	Type t;
 
 	t.base = b; t.ptr = 0; t.bconst = 0; t.tconst = 0;
 	return t;
 }
 
-static int is_intlike (Type t) {
+int is_intlike (Type t) {
 	return t.ptr == 0 && (t.base == B_BYTE || t.base == B_WORD || t.base == B_INT);
 }
 
-static int is_boolt (Type t) { return t.ptr == 0 && t.base == B_BOOL; }
-static int is_voidt (Type t) { return t.ptr == 0 && t.base == B_VOID; }
-static int is_nullt (Type t) { return t.ptr == 0 && t.base == B_NULL; }
-static int is_ptrt (Type t) { return t.ptr > 0; }
-static int same_type (Type a, Type b) { return a.base == b.base && a.ptr == b.ptr; }
+int is_boolt (Type t) { return t.ptr == 0 && t.base == B_BOOL; }
+int is_voidt (Type t) { return t.ptr == 0 && t.base == B_VOID; }
+int is_nullt (Type t) { return t.ptr == 0 && t.base == B_NULL; }
+int is_ptrt (Type t) { return t.ptr > 0; }
+int same_type (Type a, Type b) { return a.base == b.base && a.ptr == b.ptr; }
 
-static const char *irtype (Type t) {
+char *irtype (Type t) {
 	if (t.ptr > 0) return (t.ptr == 1 && (t.base == B_BYTE || t.base == B_BOOL)) ? "Byte Pointer" : "Word Pointer";
 	switch (t.base) {
 		case B_VOID: return "None";
@@ -369,7 +227,7 @@ static const char *irtype (Type t) {
 	return "?";
 }
 
-static const char *tstr (Type t) {
+const char *tstr (Type t) {
 	static char buf[8][64];
 	static int k;
 	char *b = buf[k++ & 7];
@@ -391,8 +249,7 @@ static const char *tstr (Type t) {
 	return b;
 }
 
-/* the type a pointer points at */
-static Type pointee (Type p) {
+Type pointee (Type p) {
 	Type e = p;
 
 	e.ptr--;
@@ -400,7 +257,7 @@ static Type pointee (Type p) {
 	return e;
 }
 
-static Type pointer_to (Type e) {
+Type pointer_to (Type e) {
 	Type p = e;
 
 	p.ptr++;
@@ -409,38 +266,33 @@ static Type pointer_to (Type e) {
 	return p;
 }
 
-/* size in bytes of one element of the given type */
-static int type_bytes (Type t) {
+int type_bytes (Type t) {
 	if (t.ptr == 0 && (t.base == B_BYTE || t.base == B_BOOL)) return 1;
 	return 4;
 }
 
-static Sym **syms;
-static int nsyms, symcap;
-static int scopes[128], nscopes;
-
-static void scope_push (void) {
+void scope_push (void) {
 	if (nscopes >= 128) fail("blocks nested too deeply");
 	scopes[nscopes++] = nsyms;
 }
 
-static void scope_pop (void) { nsyms = scopes[--nscopes]; }
+void scope_pop (void) { nsyms = scopes[--nscopes]; }
 
-static Sym *lookup (const char *name) {
+Sym *lookup (const char *name) {
 	int i;
 
 	for (i = nsyms - 1; i >= 0; i--) if (strcmp(syms[i]->name, name) == 0) return syms[i];
 	return NULL;
 }
 
-static Sym *lookup_here (const char *name) {
+Sym *lookup_here (const char *name) {
 	int i, lo = nscopes ? scopes[nscopes - 1] : 0;
 
 	for (i = nsyms - 1; i >= lo; i--) if (strcmp(syms[i]->name, name) == 0) return syms[i];
 	return NULL;
 }
 
-static Sym *sym_add (const char *name, int kind) {
+Sym *sym_add (const char *name, int kind) {
 	Sym *s = xmalloc(sizeof *s);
 
 	memset(s, 0, sizeof *s);
@@ -454,18 +306,14 @@ static Sym *sym_add (const char *name, int kind) {
 	return s;
 }
 
-/* IR names in use: globals plus the locals of the current function */
-static char **used;
-static int nused, usedcap, nglobal_used;
-
-static int name_used (const char *n) {
+int name_used (const char *n) {
 	int i;
 
 	for (i = 0; i < nused; i++) if (strcmp(used[i], n) == 0) return 1;
 	return 0;
 }
 
-static void use_name (char *n) {
+void use_name (char *n) {
 	if (nused >= usedcap) {
 		usedcap = usedcap ? usedcap * 2 : 64;
 		used = xrealloc(used, (unsigned long)usedcap * sizeof *used);
@@ -473,7 +321,7 @@ static void use_name (char *n) {
 	used[nused++] = n;
 }
 
-static char *unique_ir (const char *base) {
+char *unique_ir (const char *base) {
 	char *n = xstrdup(base);
 	int k = 1;
 
@@ -482,14 +330,7 @@ static char *unique_ir (const char *base) {
 	return n;
 }
 
-/* ------------------------------------------------------------------ */
-/* output buffers and the function being compiled                     */
-static Fn *F;
-static Fn initfn;
-static Buf gdefs, funcs;
-static int nstr;
-
-static void emit (const char *fmt, ...) {
+void emit (const char *fmt, ...) {
 	va_list ap;
 
 	if (!F) fail("internal error: no function to emit into");
@@ -500,19 +341,17 @@ static void emit (const char *fmt, ...) {
 	bputc(&F->body, '\n');
 }
 
-static char *new_temp (Type t) {
+char *new_temp (Type t) {
 	char *n = xsprintf(".t%d", F->ntemp++);
 
 	bprintf(&F->defs, "\tDefine %s %s\n", irtype(t), n);
 	return n;
 }
 
-static char *new_label (void) { return xsprintf(".L%d", F->nlabel++); }
-static void place_label (const char *l) { bprintf(&F->body, "%s:\n", l); }
+char *new_label (void) { return xsprintf(".L%d", F->nlabel++); }
+void place_label (const char *l) { bprintf(&F->body, "%s:\n", l); }
 
-/* ------------------------------------------------------------------ */
-/* values                                                             */
-static Val reg_val (Type t, const char *op) {
+Val reg_val (Type t, const char *op) {
 	Val v;
 
 	memset(&v, 0, sizeof v);
@@ -522,7 +361,7 @@ static Val reg_val (Type t, const char *op) {
 	return v;
 }
 
-static Val lit_int (long long n) {
+Val lit_int (long long n) {
 	Val v;
 
 	memset(&v, 0, sizeof v);
@@ -533,7 +372,7 @@ static Val lit_int (long long n) {
 	return v;
 }
 
-static const char *inv_cmp (const char *op) {
+const char *inv_cmp (const char *op) {
 	if (strcmp(op, "==") == 0) return "!=";
 	if (strcmp(op, "!=") == 0) return "==";
 	if (strcmp(op, "<") == 0) return ">=";
@@ -543,7 +382,7 @@ static const char *inv_cmp (const char *op) {
 }
 
 /* load memory and decay arrays; comparisons stay lazy */
-static Val rv (Val v) {
+Val rv (Val v) {
 	if (v.kind == V_MEM) {
 		char *t = new_temp(v.type);
 
@@ -560,7 +399,7 @@ static Val rv (Val v) {
 }
 
 /* a real value: also turns a lazy comparison into a Boolean */
-static Val mat (Val v) {
+Val mat (Val v) {
 	v = rv(v);
 	if (v.kind == V_CMP) {
 		char *t = new_temp(mkt(B_BOOL));
@@ -572,19 +411,19 @@ static Val mat (Val v) {
 	return v;
 }
 
-static Val emit_convert (Val v, Type to, int aligned) {
+Val emit_convert (Val v, Type to, int aligned) {
 	char *t = new_temp(to);
 
 	emit("Convert %s Into %s%s -> %s", v.op, irtype(to), aligned ? " Aligned" : "", t);
 	return reg_val(to, t);
 }
 
-static Val to_word (Val v) {
+Val to_word (Val v) {
 	if (v.type.ptr == 0 && v.type.base == B_BYTE) return emit_convert(v, mkt(B_WORD), 0);
 	return v;
 }
 
-static Val implicit (Val v, Type to, const char *what) {
+Val implicit (Val v, Type to, const char *what) {
 	Type from;
 
 	v = mat(v);
@@ -614,7 +453,7 @@ static Val implicit (Val v, Type to, const char *what) {
 	fail("%s: cannot convert %s to %s", what, tstr(from), tstr(to));
 }
 
-static Val do_cast (Val v, Type to) {
+Val do_cast (Val v, Type to) {
 	Type from;
 
 	v = mat(v);
@@ -655,10 +494,8 @@ static Val do_cast (Val v, Type to) {
 	fail("cannot cast %s to %s", tstr(from), tstr(to));
 }
 
-/* ------------------------------------------------------------------ */
-/* operators                                                          */
-
-static Val ptr_offset (Val p, Val i, int neg, const char *dest) {
+/* operations and such */
+Val ptr_offset (Val p, Val i, int neg, const char *dest) {
 	char *d;
 	char opnd[96];
 
@@ -678,7 +515,7 @@ static Val ptr_offset (Val p, Val i, int neg, const char *dest) {
 	return reg_val(p.type, d);
 }
 
-static Val do_arith (const char *op, Val l, Val r, const char *dest) {
+Val do_arith (const char *op, Val l, Val r, const char *dest) {
 	const char *kind = op;
 	char *d;
 	Type wt = mkt(B_WORD);
@@ -707,7 +544,7 @@ static Val do_arith (const char *op, Val l, Val r, const char *dest) {
 	return reg_val(wt, d);
 }
 
-static Val do_compare (const char *op, Val l, Val r) {
+Val do_compare (const char *op, Val l, Val r) {
 	Val v;
 
 	if (is_intlike(l.type) && is_intlike(r.type)) {
@@ -730,7 +567,7 @@ static Val do_compare (const char *op, Val l, Val r) {
 	return v;
 }
 
-static Val make_not (Val v) {
+Val make_not (Val v) {
 	v = rv(v);
 	if (v.kind == V_CMP) { v.cmp = inv_cmp(v.cmp); return v; }
 	{
@@ -752,7 +589,7 @@ static Val make_not (Val v) {
 }
 
 /* write a condition's truth value into dest */
-static void bool_into (Val v, const char *dest) {
+void bool_into (Val v, const char *dest) {
 	v = rv(v);
 	if (v.kind == V_CMP) emit("Compare %s %s %s -> %s", v.a, v.cmp, v.b, dest);
 	else if (is_boolt(v.type)) emit("Move %s -> %s", v.op, dest);
@@ -762,7 +599,7 @@ static void bool_into (Val v, const char *dest) {
 }
 
 /* jump to label when the condition is true (on_true) or false */
-static void branch (Val v, int on_true, const char *label) {
+void branch (Val v, int on_true, const char *label) {
 	v = rv(v);
 	if (v.kind == V_CMP) {
 		emit("Goto %s If %s %s %s", label, v.a, on_true ? v.cmp : inv_cmp(v.cmp), v.b);
@@ -777,14 +614,8 @@ static void branch (Val v, int on_true, const char *label) {
 	}
 }
 
-/* ------------------------------------------------------------------ */
-/* expressions                                                        */
-
-static Val parse_expr (void);
-static Val parse_unary (void);
-static Val parse_binary (int minprec);
-
-static Val string_literal (const char *s, unsigned long n) {
+/* expressions and such */
+Val string_literal (const char *s, unsigned long n) {
 	char *name = xsprintf(".str%d", nstr++);
 	Type t = mkt(B_BYTE);
 	Val v;
@@ -813,8 +644,7 @@ static Val string_literal (const char *s, unsigned long n) {
 	return v;
 }
 
-/* "(a, b, c)" arguments converted to the parameter types; the '(' is consumed */
-static char *parse_args (Sym *f) {
+char *parse_args (Sym *f) {
 	Buf b = {0};
 	int n = 0;
 
@@ -834,7 +664,7 @@ static char *parse_args (Sym *f) {
 }
 
 /* dests[i] NULL means discard */
-static void emit_call (Sym *f, const char *args, char **dests, int nd) {
+void emit_call (Sym *f, const char *args, char **dests, int nd) {
 	Buf b = {0};
 	int i;
 
@@ -843,9 +673,7 @@ static void emit_call (Sym *f, const char *args, char **dests, int nd) {
 	emit("%s", bstr(&b));
 }
 
-/* if the upcoming tokens are exactly one call ending the statement, return
- * its function. nd is the number of results wanted, or -1 for any number */
-static Sym *peek_whole_call (int nd) {
+Sym *peek_whole_call (int nd) {
 	Tok *t = cur(), *after;
 	Sym *f;
 	int close;
@@ -861,7 +689,7 @@ static Sym *peek_whole_call (int nd) {
 	return NULL;
 }
 
-static Val parse_call_expr (Sym *f) {
+Val parse_call_expr (Sym *f) {
 	char *args;
 
 	advance();
@@ -880,9 +708,7 @@ static Val parse_call_expr (Sym *f) {
 	}
 }
 
-static Type parse_type_full (void);
-
-static Val parse_sizeof (void) {
+Val parse_sizeof (void) {
 	Val v;
 
 	advance();
@@ -915,7 +741,7 @@ static Val parse_sizeof (void) {
 	return v;
 }
 
-static Val parse_primary (void) {
+Val parse_primary (void) {
 	Tok *t = cur();
 	Val v;
 
@@ -979,7 +805,7 @@ static Val parse_primary (void) {
 	fail("unexpected token in expression");
 }
 
-static Val parse_index (Val base, Val idx) {
+Val parse_index (Val base, Val idx) {
 	Val v;
 
 	base = rv(base);
@@ -999,7 +825,7 @@ static Val parse_index (Val base, Val idx) {
 	return v;
 }
 
-static Val parse_postfix (void) {
+Val parse_postfix (void) {
 	Val v = parse_primary();
 
 	while (is_p("[")) {
@@ -1013,7 +839,7 @@ static Val parse_postfix (void) {
 	return v;
 }
 
-static Val parse_unary (void) {
+Val parse_unary (void) {
 	Val v;
 
 	if (is_p("-")) {
@@ -1066,12 +892,7 @@ static Val parse_unary (void) {
 	return parse_postfix();
 }
 
-static int binary_prec (const char **opname) {
-	static const struct { const char *op; int prec; } tab[] = {
-		{"||", 1}, {"&&", 2}, {"|", 3}, {"^", 4}, {"&", 5}, {"==", 6}, {"!=", 6},
-		{"<", 7}, {"<=", 7}, {">", 7}, {">=", 7}, {"<<", 8}, {">>", 8},
-		{"+", 9}, {"-", 9}, {"*", 10}, {"/", 10}, {"%", 10}, {NULL, 0}
-	};
+int binary_prec (const char **opname) {
 	int i;
 
 	if (cur()->kind != T_PUNCT) return 0;
@@ -1080,7 +901,7 @@ static int binary_prec (const char **opname) {
 	return 0;
 }
 
-static Val parse_binary (int minprec) {
+Val parse_binary (int minprec) {
 	Val lhs = parse_unary();
 
 	for (;;) {
@@ -1112,9 +933,11 @@ static Val parse_binary (int minprec) {
 	return lhs;
 }
 
-static Val parse_expr (void) { return parse_binary(1); }
+Val parse_expr (void) { 
+	return parse_binary(1); 
+}
 
-static void parse_base (Type *t) {
+void parse_base (Type *t) {
 	int cnst = 0;
 
 	if (is_kw("const")) { cnst = 1; advance(); }
@@ -1128,7 +951,7 @@ static void parse_base (Type *t) {
 	t->tconst = cnst;
 }
 
-static void parse_stars (Type *t) {
+void parse_stars (Type *t) {
 	while (accept_p("*")) {
 		if (is_voidt(*t)) fail("void pointers are not supported");
 		t->ptr++;
@@ -1137,7 +960,7 @@ static void parse_stars (Type *t) {
 	}
 }
 
-static Type parse_type_full (void) {
+Type parse_type_full (void) {
 	Type t;
 
 	parse_base(&t);
@@ -1145,10 +968,7 @@ static Type parse_type_full (void) {
 	return t;
 }
 
-static void parse_stmt (void);
-static void parse_simple_stmt (void);
-
-static void store_lvalue (Val lhs, Val rhs) {
+void store_lvalue (Val lhs, Val rhs) {
 	if (lhs.kind == V_REG && lhs.isvar) {
 		if (lhs.type.tconst) fail("assignment to const variable '%s'", lhs.sym ? lhs.sym->name : "?");
 		emit("Move %s -> %s", rhs.op, lhs.op);
@@ -1162,18 +982,18 @@ static void store_lvalue (Val lhs, Val rhs) {
 	}
 }
 
-static Val parse_lvalue (void) {
+Val parse_lvalue (void) {
 	Val v = parse_unary();
 
 	return v;
 }
 
-static int direct_dest_ok (Val lhs, Type from) {
+int direct_dest_ok (Val lhs, Type from) {
 	return lhs.kind == V_REG && lhs.isvar && !lhs.type.tconst && same_type(lhs.type, from);
 }
 
 /* lhs op= rhs */
-static void compound_assign (Val lhs, const char *op, Val rhs) {
+void compound_assign (Val lhs, const char *op, Val rhs) {
 	Val l, res;
 	int direct = lhs.kind == V_REG && lhs.isvar && !lhs.type.tconst &&
 		(lhs.type.ptr > 0 || (lhs.type.base == B_WORD && lhs.type.ptr == 0));
@@ -1186,7 +1006,7 @@ static void compound_assign (Val lhs, const char *op, Val rhs) {
 	if (!direct) store_lvalue(lhs, implicit(res, lhs.type, "assignment"));
 }
 
-static void parse_simple_stmt (void) {
+void parse_simple_stmt (void) {
 	Sym *cf;
 	Val lhs;
 
@@ -1268,7 +1088,7 @@ static void parse_simple_stmt (void) {
 	fail("statement is not an assignment or a call");
 }
 
-static char *new_local (const char *name, Type t, Sym **out, int array) {
+char *new_local (const char *name, Type t, Sym **out, int array) {
 	Sym *s;
 	char *ir;
 
@@ -1281,7 +1101,7 @@ static char *new_local (const char *name, Type t, Sym **out, int array) {
 	return ir;
 }
 
-static void parse_decl (void) {
+void parse_decl (void) {
 	Type base;
 
 	parse_base(&base);
@@ -1346,7 +1166,7 @@ static void parse_decl (void) {
 	expect_p(";");
 }
 
-static int tuple_form (void) {
+int tuple_form (void) {
 	int close = match_paren(tp), i, depth = 0;
 
 	if (close < 0 || !tok_is_p(&toks[close + 1], ";")) return 0;
@@ -1358,7 +1178,7 @@ static int tuple_form (void) {
 	return 0;
 }
 
-static void parse_return (void) {
+void parse_return (void) {
 	char *ops[MAXRET];
 	int n = 0, paren = 0;
 	Buf b = {0};
@@ -1384,15 +1204,15 @@ static void parse_return (void) {
 	emit("Return (%s)", bstr(&b));
 }
 
-static void loop_push (char *brk, char *cont) {
+void loop_push (char *brk, char *cont) {
 	if (F->nloop >= 64) fail("loops nested too deeply");
 	F->brk[F->nloop] = brk;
 	F->cont[F->nloop++] = cont;
 }
 
-static void parse_cond (void (*)(Val));
+void parse_cond (void (*)(Val));
 
-static Val parse_paren_cond (void) {
+Val parse_paren_cond (void) {
 	Val c;
 
 	expect_p("(");
@@ -1401,7 +1221,7 @@ static Val parse_paren_cond (void) {
 	return c;
 }
 
-static void parse_stmt (void) {
+void parse_stmt (void) {
 	if (is_p("{")) {
 		advance();
 		scope_push();
@@ -1516,10 +1336,7 @@ static void parse_stmt (void) {
 	expect_p(";");
 }
 
-static char **included;
-static int nincluded;
-
-static int same_sig (Sym *f, Type *rets, int nrets, Type *params, int nparams) {
+int same_sig (Sym *f, Type *rets, int nrets, Type *params, int nparams) {
 	int i;
 
 	if (f->nrets != nrets || f->nparams != nparams) return 0;
@@ -1528,7 +1345,7 @@ static int same_sig (Sym *f, Type *rets, int nrets, Type *params, int nparams) {
 	return 1;
 }
 
-static char *type_list (Type *v, int n) {
+char *type_list (Type *v, int n) {
 	Buf b = {0};
 	int i;
 
@@ -1537,7 +1354,7 @@ static char *type_list (Type *v, int n) {
 	return xstrdup(bstr(&b));
 }
 
-static void parse_function (Type *rets, int nrets, char *name) {
+void parse_function (Type *rets, int nrets, char *name) {
 	Type params[MAXPARAM];
 	char *pnames[MAXPARAM];
 	int nparams = 0, i;
@@ -1616,7 +1433,7 @@ static void parse_function (Type *rets, int nrets, char *name) {
 	}
 }
 
-static void parse_global_var (Type base, Type first, char *name) {
+void parse_global_var (Type base, Type first, char *name) {
 	Type t = first;
 
 	for (;;) {
@@ -1708,7 +1525,7 @@ static void parse_global_var (Type base, Type first, char *name) {
 	expect_p(";");
 }
 
-static char *read_all (FILE *fp) {
+char *read_all (FILE *fp) {
 	Buf b = {0};
 	char chunk[4096];
 	unsigned long n;
@@ -1723,12 +1540,7 @@ static char *read_all (FILE *fp) {
 	return b.s;
 }
 
-static char **incdirs;
-static int nincdirs;
-
-static void parse_top (void);
-
-static void include_file (const char *name) {
+void include_file (const char *name) {
 	FILE *fp = NULL;
 	char *path = NULL, *src;
 	int i;
@@ -1764,7 +1576,7 @@ static void include_file (const char *name) {
 	cur_line = save_line;
 }
 
-static void parse_top (void) {
+void parse_top (void) {
 	while (cur()->kind != T_EOF) {
 		Type base, first, rets[MAXRET];
 		int nrets = 1;

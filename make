@@ -19,8 +19,8 @@ make_vm() {
 }
 
 make_srctoir() {
-	cmd="$cc $ldflags $cflags $cflags_cc\
-		tools/cc/srctoir.c \
+	cmd="$cc $ldflags $cflags $cflags_cc \
+		tools/cc/srctoir.c tools/cc/help.c \
 		-o bin/srctoir"
 	echo "$cmd"
 	eval "$cmd"

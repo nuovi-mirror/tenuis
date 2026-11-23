@@ -1,6 +1,8 @@
 #ifndef h_srctoir_
 #define h_srctoir_
 
+#include "help.h"
+
 #define MAXRET 8
 #define MAXPARAM 16
 
@@ -12,12 +14,6 @@ typedef enum {
 	T_PUNCT, 
 	T_INCLUDE 
 } TokKind;
-
-typedef struct { 
-	char *s; 
-	unsigned long len, 
-	cap; 
-} Buf;
 
 typedef struct {
 	TokKind kind;
@@ -93,5 +89,50 @@ typedef struct {
 	Sym *sym;
 	long long lit;
 } Val;
+
+const char *cur_file = "<stdin>";
+int cur_line = 1;
+
+const char *puncts3[] = { "<<=", ">>=", NULL };
+const char *puncts2[] = {
+	"<<", ">>", "<=", ">=", "==", "!=", "&&", "||", "++", "--",
+	"+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", NULL
+};
+
+const char *reserved[] = {
+	"word", "byte", "bool", "void", "const", "if", "else", "while", "for", "do",
+	"break", "continue", "return", "true", "false", "null", "sizeof", NULL
+};
+
+Sym **syms;
+int nsyms, symcap;
+int scopes[128], nscopes;
+
+char **used;
+int nused, usedcap, nglobal_used;
+
+Fn *F;
+Fn initfn;
+Buf gdefs, funcs;
+int nstr;
+
+const struct { const char *op; int prec; } tab[] = {
+	{"||", 1}, {"&&", 2}, {"|", 3}, {"^", 4}, {"&", 5}, {"==", 6}, {"!=", 6},
+	{"<", 7}, {"<=", 7}, {">", 7}, {">=", 7}, {"<<", 8}, {">>", 8},
+	{"+", 9}, {"-", 9}, {"*", 10}, {"/", 10}, {"%", 10}, {NULL, 0}
+};
+
+char **included;
+int nincluded;
+char **incdirs;
+int nincdirs;
+int ntoks, tp;
+Tok *toks;
+
+void parse_top (void);
+Val parse_expr (void);
+Val parse_unary (void);
+Val parse_binary (int minprec);
+Type parse_type_full (void);
 
 #endif
