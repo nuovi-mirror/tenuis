@@ -5,15 +5,10 @@ higher-performance computing. Tenuis achieves this by trying to perform as
 little unneeded work per instruction and need as few instructions as 
 possible to perform a logical operation.
 
-For example, there is no addressing resolution subsystem; the opcode
-itself knows what its operands are. This is an example of one of the
-many architectural optimizations of the virtual machine.
-
 Please note, this is not close to a release. This is very early.
 
-
 todo:
-	- add logical operations
+	- add bitwise operations
 	- add more conditionals
 	- add floating-point opcodes
 	- add more useful fused opcodes
