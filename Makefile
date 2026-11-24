@@ -20,6 +20,6 @@ clean:
 	rm -rf bin
 	rm -rf objs
 
-include Makefile.vm
-include Makefile.as
-include Makefile.cc
+include Makefile-vm
+include Makefile-as
+include Makefile-cc
