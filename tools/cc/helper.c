@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "help.h"
+#include "helper.h"
 
 static unsigned int cur_file;
 static unsigned int cur_line;

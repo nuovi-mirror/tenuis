@@ -1,0 +1,48 @@
+VM_OBJS = \
+	${OBJDIR}/vm/main.o \
+	${OBJDIR}/vm/vm.o \
+	${OBJDIR}/vm/vm_single.o \
+	${OBJDIR}/vm/vm_multi.o \
+	${OBJDIR}/vm/helper.o \
+	${OBJDIR}/vm/threads.o \
+	${OBJDIR}/vm/nums.o \
+	${OBJDIR}/vm/locks.o \
+	${OBJDIR}/vm/lockdefs.o \
+	${OBJDIR}/vm/int/print.o \
+	${OBJDIR}/vm/int/rand.o \
+	${OBJDIR}/vm/int/wordtostr.o
+
+VM_SRCS = \
+	main.c vm.c vm_single.c vm_multi.c helper.c threads.c nums.c \
+	locks.c lockdefs.c \
+	int/print.c int/rand.c int/wordtostr.c
+
+vm: ${VM_OBJS} ${OBJDIR}/vm ${OUT}
+	${CC} ${CFLAGS} ${CFLAGS_VM} ${LDFLAGS} -o bin/vm ${VM_OBJS}
+
+${OBJDIR}/vm:
+	mkdir -p ${OBJDIR}/vm
+	mkdir -p ${OBJDIR}/vm/int
+
+${OBJDIR}/vm:
+${OBJDIR}/vm/int:
+
+.for src in ${VM_SRCS}
+${OBJDIR}/vm/${src:R}.o: vm/${src} ${OBJDIR}/vm
+	${CC} ${CFLAGS} ${CFLAGS_VM} -c vm/${src} -o ${.TARGET}
+.endfor
+
+${OBJDIR}/vm/int/print.o \
+${OBJDIR}/vm/int/rand.o \
+${OBJDIR}/vm/int/wordtostr.o: ${OBJDIR}/vm/int 
+
+${OBJDIR}/vm/main.o \
+${OBJDIR}/vm/vm.o \
+${OBJDIR}/vm/vm_single.o \
+${OBJDIR}/vm/vm_multi.o \
+${OBJDIR}/vm/helper.o: h/vm.h
+
+${OBJDIR}/vm/threads.o: h/vm.h h/vmthreads.h
+${OBJDIR}/vm/nums.o: h/vm.h h/nums.h
+${OBJDIR}/vm/locks.o: h/vm.h h/lockdefs.h
+${OBJDIR}/vm/lockdefs.o: h/vm.h h/lockdefs.h

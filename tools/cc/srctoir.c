@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "srctoir.h"
-#include "help.h"
+#include "helper.h"
 
 void tok_push (Tok **v, int *n, int *cap, Tok t) {
 	if (*n >= *cap) {
