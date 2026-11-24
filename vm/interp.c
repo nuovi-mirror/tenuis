@@ -17,6 +17,7 @@
 #include "opcodes/mul.c"
 #include "opcodes/div.c"
 #include "opcodes/xor.c"
+#include "opcodes/bload.c"
 
 #if !defined(__GNUC__)
 #error "requires GNU computed goto (GCC/Clang)"

@@ -45,7 +45,7 @@ struct vm {
 
 	/* data */
 	word registers[64];
-	word *heap;
+	word *heap;  /* word-addressed heap */
 	unsigned long heapsize;
 	unsigned long codesize;
 	unsigned long datasize;
@@ -63,6 +63,9 @@ void interpret (struct vm *vm);
 void interpret_single (struct vm *vm);	/* memory locks compiled out */
 void interpret_multi (struct vm *vm);	/* memory locks always on */
 
+void bwrite (struct vm *vm, word index, word bpos, byte value);
+byte bread (struct vm *vm, word index, word bpos);
+
 enum {
 #define OPCODE(name, value, handler, operands) VMOPCODE_##name = value,
 #include "opcodes.def"
@@ -70,3 +73,4 @@ enum {
 };
 
 #endif
+

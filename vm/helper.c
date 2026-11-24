@@ -36,3 +36,15 @@ void wordcmp (word num0, word num1, word *reg) {
 	if (num0 <= num1) setbit(reg, 8);
 	if (!(num0 <= num1)) setbit(reg, 9);
 }
+
+void bwrite (struct vm *vm, word index, word bpos, byte value) {
+	word shift = (3 - bpos) * 8;
+	word mask = 0xFFu << shift;
+	vm->heap[index] = (vm->heap[index] & ~mask) 
+		| ((word)value << shift);
+}
+
+byte bread (struct vm *vm, word index, word bpos) {
+	word shift = (3 - bpos) * 8;
+	return (byte)((vm->heap[index] >> shift) & 0xFFu);
+}
