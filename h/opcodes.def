@@ -1,5 +1,3 @@
-/* XXX opcodes 0x00 - 0x40 */
-
 OPCODE(NOP, 0x00, nop, "")
 OPCODE(HALT, 0x01, halt, "")
 
@@ -75,6 +73,17 @@ OPCODE(MULLHR, 0x39, mullhr, "lhr")
 OPCODE(MULLRH, 0x40, mullrh, "lrh")
 OPCODE(MULLHH, 0x45, mullhh, "lhh")
 
+OPCODE(DIVLLR, 0x53, divllr, "llr")
+OPCODE(DIVLRR, 0x54, divlrr, "lrr")
+OPCODE(DIVLLH, 0x55, divllh, "llh")
+OPCODE(DIVRRR, 0x56, divrrr, "rrr")
+OPCODE(DIVHHH, 0x57, divhhh, "hhh")
+OPCODE(DIVHHR, 0x58, divhhr, "hhr")
+OPCODE(DIVRRH, 0x59, divrrh, "rrh")
+OPCODE(DIVLHR, 0x5A, divlhr, "lhr")
+OPCODE(DIVLRH, 0x5B, divlrh, "lrh")
+OPCODE(DIVLHH, 0x5C, divlhh, "lhh")
+
 OPCODE(DECR, 0x21, decr, "r")
 OPCODE(DECH, 0x22, dech, "h")
 OPCODE(INCR, 0x23, incr, "r")
@@ -84,4 +93,4 @@ OPCODE(SPAWNLL, 0x2F, spawnll, "ll")
 OPCODE(SPAWNRL, 0x30, spawnrl, "rl")
 OPCODE(STOP, 0x31, stop, "")
 
-OPCODE(__END, 0x53, __end, "")
+OPCODE(__END, 0x5D, __end, "")

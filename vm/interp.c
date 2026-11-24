@@ -15,6 +15,7 @@
 #include "opcodes/cmp.c"
 #include "opcodes/multi.c"
 #include "opcodes/mul.c"
+#include "opcodes/div.c"
 
 #if !defined(__GNUC__)
 #error "requires GNU computed goto (GCC/Clang)"

@@ -115,6 +115,28 @@ mul family - Multiply two values
 	mulrhh		- Multiply the data in a register and a memory
 			  address and write the result to a memory address
 
+div family - Divide two values
+	divrrr		- Divide two registers and write the result into
+			  a register
+	divllr		- Divide two literals and write the result into
+			  a register
+	divlrr		- Divide a literal and a register and write the
+			  result into a register
+	divhhh		- Divide the data in two memory addresses and
+			  store the result into a memory address
+	divhhr		- Divide the data in two memory addresses and
+			  store the result into a register
+	divllh		- Divide two literals and store the result into
+			  a memory address
+	divlhr		- Divide a literal and the data in a memory
+			  address and store to a register
+	divlrh		- Divide a literal and a register and store
+			  the result into a memory address
+	divhrr		- Divide the data in a memory address and a
+			  register and store the result into a register
+	divrhh		- Divide the data in a register and a memory
+			  address and write the result to a memory address
+
 stack manipulation family - Manipulate a stack
 	pushh		- Push data in memory address onto the stack
 	pushl		- Push literal onto the stack

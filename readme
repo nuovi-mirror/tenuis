@@ -13,7 +13,6 @@ Please note, this is not close to a release. This is very early.
 
 
 todo:
-	- add division opcode
 	- add logical operations
 	- add more conditionals
 	- add floating-point opcodes
