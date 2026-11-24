@@ -10,9 +10,10 @@ Please note, this is not close to a release. This is very early.
 
 
 todo:
-	- add bitwise operations
+	- add more bitwise operations
 	- add more conditionals
 	- add floating-point opcodes
 	- add more useful fused opcodes
 	- add an IR to assembler compiler
 	- add an IR optimizer
+	- add an assembler optimizer
