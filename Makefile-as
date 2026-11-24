@@ -6,7 +6,7 @@ AS_OBJS = \
 AS_SRCS = \
 	tools/as/as.c tools/as/helper.c tools/as/parser.c
 
-as: ${AS_OBJS} ${OBJDIR} ${OUT}
+as: ${AS_OBJS} ${OBJDIR}/tools/as ${OUT}
 	${CC} ${CFLAGS} ${CFLAGS_AS} ${LDFLAGS} -o bin/as ${AS_OBJS}
 
 ${OBJDIR}/tools/as:
