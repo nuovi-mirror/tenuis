@@ -85,6 +85,24 @@ void bprintf (Buf *b, const char *fmt, ...) {
 	va_end(ap);
 }
 
+void putn(struct Buf *b, const char *s, unsigned long n) {
+	unsigned long need = b->len + n + 1;
+	if (need > b->cap) {
+		unsigned long cap = b->cap ? b->cap : 256;
+		while (cap < need) cap *= 2;
+		b->s = xrealloc(b->s, cap);
+		b->cap = cap;
+	}
+	memcpy(b->s + b->len, s, n);
+	b->len += n;
+	b->s[b->len] = '\0';
+}
+
+void putc_b(struct Buf *b, int c) {
+	char ch = (char)c;
+	putn(b, &ch, 1);
+}
+
 char *xsprintf (const char *fmt, ...) {
 	Buf b = {0};
 	va_list ap;

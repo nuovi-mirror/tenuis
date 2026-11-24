@@ -1,7 +1,7 @@
 #ifndef h_help_
 #define h_help_
 
-typedef struct { 
+typedef struct Buf { 
 	char *s; 
 	unsigned long len, 
 	cap; 
@@ -13,6 +13,9 @@ void *xmalloc (unsigned long n);
 void *xrealloc (void *p, unsigned long n);
 
 char *xstrdup (const char *s);
+
+void putn(Buf *b, const char *s, unsigned long n);
+void putc_b(Buf *b, int c);
 
 void bgrow (Buf *b, unsigned long need);
 void bputs (Buf *b, const char *s);

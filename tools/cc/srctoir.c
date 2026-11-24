@@ -16,14 +16,14 @@ void tok_push (Tok **v, int *n, int *cap, Tok t) {
 
 Tok *lex (const char *src, int *count) {
 	Tok *v = NULL;
-	int n = 0, cap = 0, line = 1, bol = 1;
+	int n = 0, cap = 0, line = 1;
 	const char *p = src;
 	Tok t;
 
 	for (;;) {
 		cur_line = line;
 		if (!*p) break;
-		if (*p == '\n') { line++; p++; bol = 1; continue; }
+		if (*p == '\n') { line++; p++; continue; }
 		if (isspace((unsigned char)*p)) { p++; continue; }
 		if (p[0] == '/' && p[1] == '/') { while (*p && *p != '\n') p++; continue; }
 		if (p[0] == '/' && p[1] == '*') {
@@ -37,34 +37,6 @@ Tok *lex (const char *src, int *count) {
 		memset(&t, 0, sizeof t);
 		t.line = line;
 
-		if (*p == '#') {
-			char word[32], close;
-			unsigned long i = 0;
-
-			if (!bol) fail("# must start a line");
-			p++;
-			while (*p == ' ' || *p == '\t') p++;
-			while (isalpha((unsigned char)*p) && i < sizeof word - 1) word[i++] = *p++;
-			word[i] = 0;
-			if (strcmp(word, "include") != 0) fail("unsupported directive #%s", word);
-			while (*p == ' ' || *p == '\t') p++;
-			if (*p == '<') close = '>';
-			else if (*p == '"') close = '"';
-			else fail("expected <name> or \"name\" after #include");
-			p++;
-			i = 0;
-			while (*p && *p != close && *p != '\n') {
-				if (i >= sizeof t.text - 1) fail("include name too long");
-				t.text[i++] = *p++;
-			}
-			if (*p != close) fail("unterminated #include");
-			p++;
-			t.kind = T_INCLUDE;
-			tok_push(&v, &n, &cap, t);
-			bol = 0;
-			continue;
-		}
-		bol = 0;
 
 		if (isalpha((unsigned char)*p) || *p == '_') {
 			unsigned long i = 0;
@@ -1540,55 +1512,12 @@ char *read_all (FILE *fp) {
 	return b.s;
 }
 
-void include_file (const char *name) {
-	FILE *fp = NULL;
-	char *path = NULL, *src;
-	int i;
-	Tok *save_toks = toks;
-	int save_n = ntoks, save_tp = tp;
-	const char *save_file = cur_file;
-	int save_line = cur_line;
-
-	for (i = 0; i < nincluded; i++) if (strcmp(included[i], name) == 0) return;
-
-	fp = fopen(name, "r");
-	if (fp) path = xstrdup(name);
-	for (i = 0; !fp && i < nincdirs; i++) {
-		path = xsprintf("%s/%s", incdirs[i], name);
-		fp = fopen(path, "r");
-	}
-	if (!fp) fail("cannot find include file '%s'", name);
-
-	included = xrealloc(included, (unsigned long)(nincluded + 1) * sizeof *included);
-	included[nincluded++] = xstrdup(name);
-	src = read_all(fp);
-	fclose(fp);
-
-	cur_file = path;
-	toks = lex(src, &ntoks);
-	tp = 0;
-	cur_line = toks[0].line;
-	parse_top();
-	toks = save_toks;
-	ntoks = save_n;
-	tp = save_tp;
-	cur_file = save_file;
-	cur_line = save_line;
-}
-
 void parse_top (void) {
 	while (cur()->kind != T_EOF) {
 		Type base, first, rets[MAXRET];
 		int nrets = 1;
 		char *name;
 
-		if (cur()->kind == T_INCLUDE) {
-			char *name2 = xstrdup(cur()->text);
-
-			advance();
-			include_file(name2);
-			continue;
-		}
 		parse_base(&base);
 		first = base;
 		parse_stars(&first);
@@ -1616,23 +1545,10 @@ void parse_top (void) {
 	}
 }
 
-int main (int argc, char **argv) {
+int main (void) {
 	char *src;
 	int i, any = 0;
 	Sym *mainf;
-
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-I") == 0 && i + 1 < argc) {
-			incdirs = xrealloc(incdirs, (unsigned long)(nincdirs + 1) * sizeof *incdirs);
-			incdirs[nincdirs++] = argv[++i];
-		} else if (strncmp(argv[i], "-I", 2) == 0 && argv[i][2]) {
-			incdirs = xrealloc(incdirs, (unsigned long)(nincdirs + 1) * sizeof *incdirs);
-			incdirs[nincdirs++] = argv[i] + 2;
-		} else {
-			fprintf(stderr, "usage: srctoir [-I dir]... < source > ir\n");
-			return strcmp(argv[i], "-h") == 0 ? 0 : 1;
-		}
-	}
 
 	src = read_all(stdin);
 	toks = lex(src, &ntoks);
@@ -1661,3 +1577,4 @@ int main (int argc, char **argv) {
 	printf("%s", bstr(&funcs));
 	return 0;
 }
+
