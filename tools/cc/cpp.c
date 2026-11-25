@@ -9,7 +9,7 @@
 void die(const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
-	fprintf(stderr, "srctopp: ");
+	fprintf(stderr, "cpp: ");
 	vfprintf(stderr, fmt, ap);
 	fputc('\n', stderr);
 	va_end(ap);

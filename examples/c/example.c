@@ -1,3 +1,5 @@
+#include "thing.c"
+
 #define TRUE true
 
 bool, word main (void) {
