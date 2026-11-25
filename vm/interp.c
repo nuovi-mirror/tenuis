@@ -3,24 +3,8 @@
 #endif
 
 #include "vm.h"
+#include "opcodes.h"
 #include <stdlib.h>
-
-#include "opcodes/add.c"
-#include "opcodes/sub.c"
-#include "opcodes/load.c"
-#include "opcodes/jmp.c"
-#include "opcodes/misc.c"
-#include "opcodes/smath.c"
-#include "opcodes/stack.c"
-#include "opcodes/cmp.c"
-#include "opcodes/multi.c"
-#include "opcodes/mul.c"
-#include "opcodes/div.c"
-#include "opcodes/xor.c"
-#include "opcodes/bload.c"
-#include "opcodes/and.c"
-#include "opcodes/not.c"
-#include "opcodes/or.c"
 
 #if !defined(__GNUC__)
 #error "requires GNU computed goto (GCC/Clang)"

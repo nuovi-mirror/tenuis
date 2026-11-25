@@ -24,10 +24,11 @@ and for ANSI software:
 		-I./tools/cc/lib/libc/h/ | ./bin/srctoir > file.ir
 
 todo:
-	- add more bitwise operations
 	- add more conditionals
 	- add floating-point opcodes
 	- add more useful fused opcodes
+	- update the documentation on the new opcodes
+	- write documentaion on the IR and C dialects
 	- add an IR to assembler compiler
 	- add an IR optimizer
 	- add an assembler optimizer
