@@ -1,9 +1,10 @@
-#include <memory.h>
+#include <libt/string.h>
 
-const byte data[] = "hi\n";
+const byte str[] = "hihihi\n";
 
 bool main (void) {
-	word buff[4];
-	copymem((const word *)&data[0], buff, sizeof(data));
+	word len = lenofstr(str);
+	byte buff[len];
+	if (copystr(str, buff) != true) return(false);
 	return(true);
 }
