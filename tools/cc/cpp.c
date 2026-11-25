@@ -311,7 +311,7 @@ int process_file(FILE *fp, const char *filename, int depth) {
 int main(int argc, char **argv) {
 	FILE *fp = stdin;
 	const char *filename = "<stdin>";
-	int i, rc;
+	int i, rc, ansi = 0;
 
 	for (i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-I") == 0 && i + 1 < argc) {
@@ -320,8 +320,10 @@ int main(int argc, char **argv) {
 		} else if (strncmp(argv[i], "-I", 2) == 0 && argv[i][2]) {
 			incdirs = xrealloc(incdirs, (nincdirs + 1) * sizeof *incdirs);
 			incdirs[nincdirs++] = argv[i] + 2;
+		} else if (strcmp(argv[i], "-ansi") == 0) {
+			ansi = 1;
 		} else if (argv[i][0] == '-') {
-			fprintf(stderr, "usage: srctopp [-I dir]... [file]\n");
+			fprintf(stderr, "usage: srctopp [-ansi] [-I dir]... [file]\n");
 			return 1;
 		} else if (fp == stdin) {
 			filename = argv[i];
@@ -329,6 +331,17 @@ int main(int argc, char **argv) {
 			if (!fp) { perror(filename); return 1; }
 		} else {
 			fprintf(stderr, "srctopp: only one input file is accepted\n");
+			return 1;
+		}
+	}
+
+	if (ansi) {
+		/* as if the file began with: #include <ansi.h> (process_include needs a writable string) */
+		char inc[] = "<ansi.h>";
+
+		current_file = filename;
+		if (process_include(inc, 0) != 0) {
+			if (fp != stdin) fclose(fp);
 			return 1;
 		}
 	}

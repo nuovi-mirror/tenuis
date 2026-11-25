@@ -115,7 +115,8 @@ char *xsprintf (const char *fmt, ...) {
 }
 
 char *bstr (Buf *b) { 
-	return b->s ? b->s : ""; 
+	if (!b->s) b->s = xstrdup("");
+	return b->s;
 }
 
 int hexval (int c) {

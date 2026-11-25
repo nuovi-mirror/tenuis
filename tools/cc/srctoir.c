@@ -228,6 +228,7 @@ int is_boolt (Type t) { return t.ptr == 0 && t.base == B_BOOL; }
 int is_voidt (Type t) { return t.ptr == 0 && t.base == B_VOID; }
 int is_nullt (Type t) { return t.ptr == 0 && t.base == B_NULL; }
 int is_ptrt (Type t) { return t.ptr > 0; }
+int is_voidp (Type t) { return t.ptr == 1 && t.base == B_VOID; }
 int same_type (Type a, Type b) { return a.base == b.base && a.ptr == b.ptr; }
 
 /* same_type ignores qualifiers; a typedef redefinition must match exactly */
@@ -251,7 +252,7 @@ int void_param_words (void) {
 }
 
 char *irtype (Type t) {
-	if (t.ptr > 0) return (t.ptr == 1 && (t.base == B_BYTE || t.base == B_BOOL)) ? "Byte Pointer" : "Word Pointer";
+	if (t.ptr > 0) return (t.ptr == 1 && (t.base == B_BYTE || t.base == B_BOOL || t.base == B_VOID)) ? "Byte Pointer" : "Word Pointer";
 	switch (t.base) {
 		case B_VOID: return "None";
 		case B_BOOL: return "Boolean";
@@ -458,6 +459,8 @@ Val to_word (Val v) {
 	return v;
 }
 
+Val do_cast (Val v, Type to);
+
 Val implicit (Val v, Type to, const char *what) {
 	Type from;
 
@@ -483,6 +486,11 @@ Val implicit (Val v, Type to, const char *what) {
 		if (is_ptrt(from) && same_type(from, to)) {
 			if (from.bconst && !to.bconst) fail("%s: discards const (%s to %s)", what, tstr(from), tstr(to));
 			return v;
+		}
+		/* void * converts implicitly to and from any other pointer type */
+		if (is_ptrt(from) && (is_voidp(from) || is_voidp(to))) {
+			if (from.bconst && !to.bconst) fail("%s: discards const (%s to %s)", what, tstr(from), tstr(to));
+			return do_cast(v, to);
 		}
 	}
 	fail("%s: cannot convert %s to %s", what, tstr(from), tstr(to));
@@ -555,6 +563,8 @@ Val do_arith (const char *op, Val l, Val r, const char *dest) {
 	char *d;
 	Type wt = mkt(B_WORD);
 
+	if (is_voidp(l.type) || is_voidp(r.type))
+		fail("invalid arithmetic on a void pointer: %s %s %s", tstr(l.type), op, tstr(r.type));
 	if (strcmp(op, "+") == 0 && is_ptrt(l.type) && is_intlike(r.type)) return ptr_offset(l, r, 0, dest);
 	if (strcmp(op, "+") == 0 && is_intlike(l.type) && is_ptrt(r.type)) return ptr_offset(r, l, 0, dest);
 	if (strcmp(op, "-") == 0 && is_ptrt(l.type) && is_intlike(r.type)) return ptr_offset(l, r, 1, dest);
@@ -847,6 +857,7 @@ Val parse_index (Val base, Val idx) {
 
 	base = rv(base);
 	if (!is_ptrt(base.type)) fail("cannot index %s", tstr(base.type));
+	if (is_voidp(base.type)) fail("cannot index a void pointer");
 	idx = implicit(idx, mkt(B_WORD), "index");
 	memset(&v, 0, sizeof v);
 	v.kind = V_MEM;
@@ -910,6 +921,7 @@ Val parse_unary (void) {
 		advance();
 		v = rv(parse_unary());
 		if (!is_ptrt(v.type)) fail("cannot dereference %s", tstr(v.type));
+		if (is_voidp(v.type)) fail("cannot dereference a void pointer");
 		v.kind = V_MEM;
 		v.type = pointee(v.type);
 		v.isvar = 0;
@@ -1001,7 +1013,6 @@ void parse_base (Type *t) {
 
 void parse_stars (Type *t) {
 	while (accept_p("*")) {
-		if (is_voidt(*t)) fail("void pointers are not supported");
 		t->ptr++;
 		t->tconst = 0;
 		if (is_kw("const")) { t->tconst = 1; advance(); }

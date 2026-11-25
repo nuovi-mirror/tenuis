@@ -1,4 +1,5 @@
-#include <ansi.h>
+/* example of ANSI C compiling */
+
 #include <string.h>
 
 const char str[] = "Hihi\n";
