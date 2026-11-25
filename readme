@@ -7,7 +7,21 @@ possible to perform a logical operation.
 
 Please note, this is not close to a release. This is very early.
 
+To build software which uses libt (the native C library), include the
+directories tools/cc/lib/libt/ and tools/cc/lib/libt/h/libt/ using the -I
+flag in the C preprocessor. ANSI C is (kind-of) supported via the
+libraries in tools/cc/lib/libc/ and tools/cc/lib/libc/h/. Please include
+these, as well as add #include <ansi.h> if your software requires ANSI
+C compatability. These libraries are made for ANSI C99.
 
+eg. for native software:
+	% ./bin/cpp < path-to-thing -I./tools/cc/lib/libt/ \
+		-I./tools/cc/lib/libt/h/ | ./bin/srctoir > file.ir
+
+and for ANSI software:
+	% ./bin/cpp < path-to-thing -I./tools/cc/lib/libt/ \
+		-I./tools/cc/lib/libt/h/ -I./tools/cc/lib/libc/ \
+		-I./tools/cc/lib/libc/h/ | ./bin/srctoir > file.ir
 
 todo:
 	- add more bitwise operations

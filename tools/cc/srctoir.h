@@ -5,6 +5,7 @@
 
 #define MAXRET 8
 #define MAXPARAM 16
+#define MAXTYPEWORDS 8		/* most words in one typedef name ("unsigned long long") */
 
 typedef enum { 
 	T_EOF, 
@@ -44,7 +45,8 @@ typedef struct {
 enum { 
 	S_VAR, 
 	S_ARR, 
-	S_FUNC 
+	S_FUNC,
+	S_TYPE			/* a typedef name; the aliased type is in Sym.type */
 };
 
 typedef struct Sym {
@@ -101,7 +103,7 @@ const char *puncts2[] = {
 
 const char *reserved[] = {
 	"word", "byte", "bool", "void", "const", "if", "else", "while", "for", "do",
-	"break", "continue", "return", "true", "false", "null", "sizeof", NULL
+	"break", "continue", "return", "true", "false", "null", "sizeof", "typedef", NULL
 };
 
 Sym **syms;
@@ -130,6 +132,7 @@ int ntoks, tp;
 Tok *toks;
 
 void parse_top (void);
+Sym *lookup (const char *name);
 Val parse_expr (void);
 Val parse_unary (void);
 Val parse_binary (int minprec);

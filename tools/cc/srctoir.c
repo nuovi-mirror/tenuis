@@ -154,9 +154,52 @@ char *expect_ident (void) {
 	return s;
 }
 
+/*
+ * A typedef name can be several words ("unsigned long"), stored in the symbol table as
+ * the words joined by single spaces. Find the longest typedef name that starts at token
+ * i: gather the run of plain identifiers there, then try the whole run and shorten it
+ * one word at a time. So with both "unsigned" and "unsigned long" defined, "unsigned x"
+ * is the former and "unsigned long x" the latter. Returns the symbol and, through
+ * nwords (may be NULL), how many tokens its name occupies.
+ */
+Sym *typename_at (int i, int *nwords) {
+	char buf[80];
+	int ends[MAXTYPEWORDS + 1];
+	int n = 0, len = 0, k;
+
+	while (n < MAXTYPEWORDS && i + n < ntoks) {
+		Tok *t = &toks[i + n];
+		int wl;
+
+		if (t->kind != T_IDENT || is_reserved(t->text)) break;
+		wl = (int)strlen(t->text);
+		if (len + (n ? 1 : 0) + wl >= (int)sizeof buf) break;
+		if (n) buf[len++] = ' ';
+		memcpy(buf + len, t->text, (unsigned long)wl);
+		len += wl;
+		ends[++n] = len;
+	}
+	for (k = n; k >= 1; k--) {
+		Sym *s;
+
+		buf[ends[k]] = 0;
+		s = lookup(buf);
+		if (s && s->kind == S_TYPE) {
+			if (nwords) *nwords = k;
+			return s;
+		}
+	}
+	return NULL;
+}
+
+int tok_is_typename (Tok *t) {
+	return typename_at((int)(t - toks), NULL) != NULL;
+}
+
 int tok_starts_type (Tok *t) {
 	return t->kind == T_IDENT && (strcmp(t->text, "word") == 0 || strcmp(t->text, "byte") == 0 ||
-		strcmp(t->text, "bool") == 0 || strcmp(t->text, "void") == 0 || strcmp(t->text, "const") == 0);
+		strcmp(t->text, "bool") == 0 || strcmp(t->text, "void") == 0 || strcmp(t->text, "const") == 0 ||
+		tok_is_typename(t));
 }
 
 int match_paren (int i) {
@@ -186,6 +229,26 @@ int is_voidt (Type t) { return t.ptr == 0 && t.base == B_VOID; }
 int is_nullt (Type t) { return t.ptr == 0 && t.base == B_NULL; }
 int is_ptrt (Type t) { return t.ptr > 0; }
 int same_type (Type a, Type b) { return a.base == b.base && a.ptr == b.ptr; }
+
+/* same_type ignores qualifiers; a typedef redefinition must match exactly */
+int same_qtype (Type a, Type b) { return same_type(a, b) && a.bconst == b.bconst && a.tconst == b.tconst; }
+
+/*
+ * Number of tokens in a lone "void" parameter list, f(void): "void" itself or a typedef
+ * name (of any number of words) that aliases plain void, followed by ")". Otherwise 0.
+ */
+int void_param_words (void) {
+	int n = 0;
+
+	if (is_kw("void")) {
+		n = 1;
+	} else {
+		Sym *s = typename_at(tp, &n);
+
+		if (!s || !is_voidt(s->type)) return 0;
+	}
+	return tok_is_p(peekn(n), ")") ? n : 0;
+}
 
 char *irtype (Type t) {
 	if (t.ptr > 0) return (t.ptr == 1 && (t.base == B_BYTE || t.base == B_BOOL)) ? "Byte Pointer" : "Word Pointer";
@@ -760,6 +823,8 @@ Val parse_primary (void) {
 			return v;
 		}
 		if (is_reserved(t->text)) fail("unexpected '%s'", t->text);
+		s = typename_at((int)(t - toks), NULL);
+		if (s) fail("'%s' is a type, not a value", s->name);
 		s = lookup(t->text);
 		if (!s) fail("undeclared identifier '%s'", t->text);
 		if (tok_is_p(peekn(1), "(")) {
@@ -910,9 +975,20 @@ Val parse_expr (void) {
 }
 
 void parse_base (Type *t) {
-	int cnst = 0;
+	int cnst = 0, nw = 0;
+	Sym *td;
 
 	if (is_kw("const")) { cnst = 1; advance(); }
+	if ((td = typename_at(tp, &nw)) != NULL) {
+		*t = td->type;
+		while (nw-- > 0) advance();
+		/* const applies to the whole aliased type: for "byte *" that is the pointer itself */
+		if (cnst) {
+			t->tconst = 1;
+			if (t->ptr == 0) t->bconst = 1;
+		}
+		return;
+	}
 	if (is_kw("word")) *t = mkt(B_WORD);
 	else if (is_kw("byte")) *t = mkt(B_BYTE);
 	else if (is_kw("bool")) *t = mkt(B_BOOL);
@@ -938,6 +1014,46 @@ Type parse_type_full (void) {
 	parse_base(&t);
 	parse_stars(&t);
 	return t;
+}
+
+void parse_typedef (void) {
+	Type base;
+
+	advance();		/* typedef */
+	parse_base(&base);
+	do {
+		Type t = base;
+		char name[80];
+		int len = 0, nw = 0;
+		Sym *old, *s;
+
+		parse_stars(&t);
+		/* the name is every plain identifier up to the , or ; : "unsigned long" is one name */
+		while (cur()->kind == T_IDENT && !is_reserved(cur()->text)) {
+			int wl = (int)strlen(cur()->text);
+
+			if (nw >= MAXTYPEWORDS) fail("typedef name has too many words (at most %d)", MAXTYPEWORDS);
+			if (len + (nw ? 1 : 0) + wl >= (int)sizeof name) fail("typedef name is too long");
+			if (nw) name[len++] = ' ';
+			memcpy(name + len, cur()->text, (unsigned long)wl);
+			len += wl;
+			name[len] = 0;
+			nw++;
+			advance();
+		}
+		if (nw == 0) fail("expected an identifier");
+		if (is_p("[") || is_p("(")) fail("typedef '%s': only plain and pointer types can be aliased", name);
+		old = lookup_here(name);
+		if (old) {
+			/* repeating an identical typedef is harmless; anything else is a clash */
+			if (old->kind != S_TYPE) fail("'%s' is already declared in this scope", name);
+			if (!same_qtype(old->type, t)) fail("conflicting typedef '%s'", name);
+			continue;
+		}
+		s = sym_add(name, S_TYPE);
+		s->type = t;
+	} while (accept_p(","));
+	expect_p(";");
 }
 
 void store_lvalue (Val lhs, Val rhs) {
@@ -1303,6 +1419,7 @@ void parse_stmt (void) {
 		return;
 	}
 	if (is_kw("return")) { parse_return(); return; }
+	if (is_kw("typedef")) { parse_typedef(); return; }
 	if (tok_starts_type(cur())) { parse_decl(); return; }
 	parse_simple_stmt();
 	expect_p(";");
@@ -1333,7 +1450,7 @@ void parse_function (Type *rets, int nrets, char *name) {
 	Sym *f;
 
 	expect_p("(");
-	if (is_kw("void") && tok_is_p(peekn(1), ")")) advance();
+	for (i = void_param_words(); i > 0; i--) advance();
 	if (!is_p(")")) {
 		do {
 			if (nparams >= MAXPARAM) fail("too many parameters");
@@ -1347,7 +1464,7 @@ void parse_function (Type *rets, int nrets, char *name) {
 
 	f = lookup(name);
 	if (f) {
-		if (f->kind != S_FUNC) fail("'%s' is already declared as a variable", name);
+		if (f->kind != S_FUNC) fail("'%s' is already declared as %s", name, f->kind == S_TYPE ? "a type" : "a variable");
 		if (!same_sig(f, rets, nrets, params, nparams)) fail("conflicting declaration of '%s'", name);
 	} else {
 		f = sym_add(name, S_FUNC);
@@ -1518,6 +1635,7 @@ void parse_top (void) {
 		int nrets = 1;
 		char *name;
 
+		if (is_kw("typedef")) { parse_typedef(); continue; }
 		parse_base(&base);
 		first = base;
 		parse_stars(&first);
