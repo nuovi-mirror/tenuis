@@ -5,8 +5,8 @@
 #include <string.h>
 #include "helper.h"
 
-static unsigned int cur_file;
-static unsigned int cur_line;
+char *cur_file = "<stdin>";
+unsigned int cur_line = 1;
 
 _Noreturn void fail (const char *fmt, ...) {
 	va_list ap;

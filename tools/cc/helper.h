@@ -1,6 +1,9 @@
 #ifndef h_help_
 #define h_help_
 
+extern char *cur_file;
+extern unsigned int cur_line;
+
 typedef struct Buf { 
 	char *s; 
 	unsigned long len, 

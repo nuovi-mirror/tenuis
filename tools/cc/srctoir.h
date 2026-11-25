@@ -92,9 +92,6 @@ typedef struct {
 	long long lit;
 } Val;
 
-const char *cur_file = "<stdin>";
-int cur_line = 1;
-
 const char *puncts3[] = { "<<=", ">>=", NULL };
 const char *puncts2[] = {
 	"<<", ">>", "<=", ">=", "==", "!=", "&&", "||", "++", "--",
