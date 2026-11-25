@@ -6,12 +6,10 @@ void int_input (struct vm *vm) {
 	word len = vm->registers[1];
 
 	for (word i = 0; i < len; i++) {
-		word value = vm->heap[base++];
-		printf("%c%c%c%c", 
-			(value >> 24) & 0xFF,
-			(value >> 16) & 0xFF,
-			(value >> 8) & 0xFF,
-			value & 0xFF
-		);
+		for (word j = 0; j < 4; j++) {
+			byte c = (byte)getchar();
+			bwrite(vm, base, j, c);
+		}
+	base++;
 	}
 }	

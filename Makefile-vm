@@ -10,12 +10,13 @@ VM_OBJS = \
 	${OBJDIR}/vm/lockdefs.o \
 	${OBJDIR}/vm/int/print.o \
 	${OBJDIR}/vm/int/rand.o \
-	${OBJDIR}/vm/int/wordtostr.o
+	${OBJDIR}/vm/int/wordtostr.o \
+	${OBJDIR}/vm/int/input.o
 
 VM_SRCS = \
 	main.c vm.c vm_single.c vm_multi.c helper.c threads.c nums.c \
 	locks.c lockdefs.c \
-	int/print.c int/rand.c int/wordtostr.c
+	int/print.c int/rand.c int/wordtostr.c int/input.c
 
 vm: ${VM_OBJS} ${OBJDIR}/vm ${OUT}
 	${CC} ${CFLAGS} ${CFLAGS_VM} ${LDFLAGS} -o bin/vm ${VM_OBJS}

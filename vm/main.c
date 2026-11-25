@@ -28,6 +28,7 @@ int main(int argc, char **argv) {
 	vm.interrupts[0] = int_print;
 	vm.interrupts[1] = int_rand;
 	vm.interrupts[2] = int_wordtostr;
+	vm.interrupts[3] = int_input;
 
 	FILE *file = fopen(argv[1], "rb");
 
