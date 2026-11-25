@@ -24,6 +24,22 @@ int parse_number(const char *text, word *value) {
 	return 1;
 }
 
+int parse_negative(const char *text, word *value) {
+	errno = 0;
+	char *end = NULL;
+	long long n = strtoll(text, &end, 0);
+
+	if (errno != 0 || end == text) return 0;
+
+	while (isspace((unsigned char)*end)) end++;
+
+	if (*end != '\0') return 0;
+	if ((sdword)n > (sdword)(sword)~(sword)0) return 0;
+
+	*value = (sword)n;
+	return 1;
+}
+
 int parse_register(const char *text, word *reg) {
 	if (!text || !*text) return 0;
 	if (tolower((unsigned char)text[0]) == 'r') text++;
@@ -132,6 +148,7 @@ int parse_string32(const char *text, word *value) {
 
 int parse_literal(const char *text, word *value) {
 	if (text && text[0] == '"') return parse_string32(text, value);
+	if (text && text[0] == '-') return parse_negative(text, value);
 	return parse_number(text, value);
 }
 

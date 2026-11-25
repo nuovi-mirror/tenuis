@@ -21,8 +21,11 @@ unsigned int checkbit (word value, unsigned int bit) {
 	return (value >> (31 - bit)) & 1u;
 }
 
-void wordcmp (word num0, word num1, word *reg) {
+void wordcmp (word unum0, word unum1, word *reg) {
 	/* XXX naieve implimentation */
+
+	sword num0 = (sword)unum0;
+	sword num1 = (sword)unum1;
 
 	*reg = 0;
 	if (num0 == num1) setbit(reg, 0);
