@@ -19,6 +19,8 @@
 #include "opcodes/xor.c"
 #include "opcodes/bload.c"
 #include "opcodes/and.c"
+#include "opcodes/not.c"
+#include "opcodes/or.c"
 
 #if !defined(__GNUC__)
 #error "requires GNU computed goto (GCC/Clang)"
