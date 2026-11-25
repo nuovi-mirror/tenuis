@@ -11,6 +11,20 @@ load family - Load one value into another
 	loadrfhir	- Load data from a register into a memory address
 			  held in a register
 
+bload family - Load and store low bytes of memory
+	bloadlh		- Load the low byte of a literal word into a
+			  byte address
+	bloadrh		- Load the low byte of a register into a byte
+			  address
+	bloadhh		- Load the data in a byte address into a byte
+			  address
+	bloadhr		- Load a byte address into the low byte of a
+			  register
+	bloadfhirr	- Load the data in a byte address held in a register
+			  into the low byte of a register
+	bloadrfhir	- Load the low byte of a register into a byte
+			  address held in a register
+
 jmp family - Jump to address
 	jmpl		- Jump to literal address
 	jmperl		- Jump to literal address (second argument) if
@@ -135,6 +149,49 @@ div family - Divide two values
 	divhrr		- Divide the data in a memory address and a
 			  register and store the result into a register
 	divrhh		- Divide the data in a register and a memory
+			  address and write the result to a memory address
+
+xor family - Bitwise XOR two values
+	xorrrr		- XOR two registers and write the result into
+			  a register
+	xorllr		- XOR two literals and write the result into
+			  a register
+	xorlrr		- XOR a literal and a register and write the
+			  result into a register
+	xorhhh		- XOR the data in two memory addresses and
+			  store the result into a memory address
+	xorhhr		- XOR the data in two memory addresses and
+			  store the result into a register
+	xorllh		- XOR two literals and store the result into
+			  a memory address
+	xorlhr		- XOR a literal and the data in a memory
+			  address and store to a register
+	xorlrh		- XOR a literal and a register and store
+			  the result into a memory address
+	xorhrr		- XOR the data in a memory address and a
+			  register and store the result into a register
+	xorrhh		- XOR the data in a register and a memory
+			  address and write the result to a memory address
+and family - Bitwise AND two values
+	andrrr		- AND two registers and write the result into
+			  a register
+	andllr		- AND two literals and write the result into
+			  a register
+	andlrr		- AND a literal and a register and write the
+			  result into a register
+	andhhh		- AND the data in two memory addresses and
+			  store the result into a memory address
+	andhhr		- AND the data in two memory addresses and
+			  store the result into a register
+	andllh		- AND two literals and store the result into
+			  a memory address
+	andlhr		- AND a literal and the data in a memory
+			  address and store to a register
+	andlrh		- AND a literal and a register and store
+			  the result into a memory address
+	andhrr		- AND the data in a memory address and a
+			  register and store the result into a register
+	andrhh		- AND the data in a register and a memory
 			  address and write the result to a memory address
 
 stack manipulation family - Manipulate a stack
