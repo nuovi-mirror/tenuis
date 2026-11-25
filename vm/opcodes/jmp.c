@@ -143,3 +143,22 @@ static inline void opcode_loopnzrl (struct vm *vm) {
 	/* XXX so GCC cannot make this a conditional move on pc */
 	else __asm__ volatile ("");
 }
+
+/* while (i < max) dst[i] = src[i++]; (kind-of) */
+static inline void opcode_floopcopyfhirfhirr (struct vm *vm) {
+	word i = 0;
+	wlockmem(vm);
+	word srcdptr = vm->heap[++vm->pc];
+	word dstdptr = vm->heap[++vm->pc];
+	word maxreg = vm->heap[++vm->pc];
+	word max = vm->registers[maxreg];
+	word srcptr = vm->registers[srcdptr];
+	word dstptr = vm->registers[dstdptr];
+
+	while (i < max) {
+		vm->heap[dstptr + i] = vm->heap[srcptr + i];
+		i++;
+	}
+
+	fwlockmem(vm);
+}

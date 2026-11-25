@@ -36,6 +36,7 @@ OPCODE(FJMPERLL, 0x2D, fjmperll, "rll")
 OPCODE(FJMPNERLL, 0x2E, fjmpnerll, "rll")
 
 OPCODE(LOOPNZRL, 0x41, loopnzrl, "rl")
+OPCODE(FLOOPCOPYFHIRFHIRR, 0xA6, floopcopyfhirfhirr, "rrr")
 
 OPCODE(CMPRRR, 0x09, cmprrr, "rrr")
 
@@ -173,4 +174,4 @@ OPCODE(SPAWNLL, 0x2F, spawnll, "ll")
 OPCODE(SPAWNRL, 0x30, spawnrl, "rl")
 OPCODE(STOP, 0x31, stop, "")
 
-OPCODE(__END, 0xA6, __end, "")
+OPCODE(__END, 0xA7, __end, "")
