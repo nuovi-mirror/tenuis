@@ -51,13 +51,17 @@ jmp family - Jump to address
 			  argument) if the two registers are not equal
 	fjmperrl	- Fused compare and jump to literal address (third
 			  argument) if the two registers are equal
-	fjmpnerll	- Fused compare and jump to literal addresss (third
+	fjmpnerll	- Fused compare and jump to literal address (third
 			  argument) if the register and literal are not
 			  equal
 	fjmperll	- Fused compare and jump to literal address (third
 			  argument) if the register and literal are equal
-	loopnzrl	- Fused decrement reguster and jump to literal
+	loopnzrl	- Fused decrement register and jump to literal
 			  address if the register is not zero
+	floopcopyfhirfhirr - Fused looping copy N words (third argument) from
+			     memory from an address held in a register (first
+			     argument) into a memory address held in a register
+			     (second argument); essentially a word-based memcpy
 
 cmp family - Compare two values
 	cmprrr		- Compare two registers and write the packed
@@ -78,7 +82,7 @@ add family - Add two values
 			  address
 	addlhr		- Add a literal to the data in a memory address and
 			  store to a register
-	addlrh		- Add a literal to the data in a register and stote
+	addlrh		- Add a literal to the data in a register and store
 			  to a memory address
 	addhrr		- Add data in a memory address to data in a
 			  register and store to a register
@@ -151,6 +155,28 @@ div family - Divide two values
 	divrhh		- Divide the data in a register and a memory
 			  address and write the result to a memory address
 
+mod family - Modulo two values
+	modrrr		- Modulo two registers and write the result into
+			  a register
+	modllr		- Modulo two literals and write the result into
+			  a register
+	modlrr		- Modulo a literal and a register and write the
+			  result into a register
+	modhhh		- Modulo the data in two memory addresses and
+			  store the result into a memory address
+	modhhr		- Modulo the data in two memory addresses and
+			  store the result into a register
+	modllh		- Modulo two literals and store the result into
+			  a memory address
+	modlhr		- Modulo a literal and the data in a memory
+			  address and store to a register
+	modlrh		- Modulo a literal and a register and store
+			  the result into a memory address
+	modhrr		- Modulo the data in a memory address and a
+			  register and store the result into a register
+	modrhh		- Modulo the data in a register and a memory
+			  address and write the result to a memory address
+
 xor family - Bitwise XOR two values
 	xorrrr		- XOR two registers and write the result into
 			  a register
@@ -172,6 +198,7 @@ xor family - Bitwise XOR two values
 			  register and store the result into a register
 	xorrhh		- XOR the data in a register and a memory
 			  address and write the result to a memory address
+
 and family - Bitwise AND two values
 	andrrr		- AND two registers and write the result into
 			  a register
@@ -194,6 +221,36 @@ and family - Bitwise AND two values
 	andrhh		- AND the data in a register and a memory
 			  address and write the result to a memory address
 
+or family - Bitwise OR two values
+	orrrr		- OR two registers and write the result into
+			  a register
+	orllr		- OR two literals and write the result into
+			  a register
+	orlrr		- OR a literal and a register and write the
+			  result into a register
+	orhhh		- OR the data in two memory addresses and
+			  store the result into a memory address
+	orhhr		- OR the data in two memory addresses and
+			  store the result into a register
+	orllh		- OR two literals and store the result into
+			  a memory address
+	orlhr		- OR a literal and the data in a memory
+			  address and store to a register
+	orlrh		- OR a literal and a register and store
+			  the result into a memory address
+	orhrr		- OR the data in a memory address and a
+			  register and store the result into a register
+	orrhh		- OR the data in a register and a memory
+			  address and write the result to a memory address
+
+not family - Bitwise NOT a value
+	notlr		- NOT a literal into a register
+	notrr		- NOT a register into a register
+	notrh		- NOT a register into memory
+	nothh		- NOT memory into memory
+	nothr		- NOT memory into a register
+	notlh		- NOT a literal into memory
+
 stack manipulation family - Manipulate a stack
 	pushh		- Push data in memory address onto the stack
 	pushl		- Push literal onto the stack
@@ -203,9 +260,9 @@ stack manipulation family - Manipulate a stack
 
 Multiprocessing opcodes - Manipulate processor threads
 	spawnll		- Spawn a new thread with the initial stack pointer
-			  and entry point inlined
+			  and entry point inline
 	spawnrl		- Spawn a new thread with the initial stack pointer
-			  inside of a register and the entry point inlined
+			  inside of a register and the entry point inclined
 	stop		- Stop the current thread
 
 Interrupts - Perform an interrupt

@@ -11,3 +11,9 @@
 	Writes the string to the memory address specified by register 1
 	with a buffer size of register 2. Writes the number of words
 	written to register 0.
+
+3 - Read from input
+	Busy wait read from input to a buffer pointer held in r0 of
+	size held in r1 in words. Blocks until the buffer is filled.
+	If too much data is given, it does not fill the buffer all
+	the way.
