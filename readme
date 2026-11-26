@@ -14,16 +14,17 @@ libraries in tools/cc/lib/libc/ and tools/cc/lib/libc/h/. Please include
 these, as well as add #include <ansi.h> or add the -ansi flag to the
 preprocessor step if the software being compiled needs ANSI C.
 
-eg. for native software:
-	% ./bin/cpp < path-to-thing -I./tools/cc/lib/libt/ \
-		-I./tools/cc/lib/libt/h/ | ./bin/srctoir | ./bin/irtoas \
-		| ./bin/as >file.bin
+Some libt libraries have pieces of them in Assembler and require merging
+with the compiled source code. A helper to compile code easily should be
+present in bin/compile to handle inclusions and merging easily. This can
+be used simply as
 
-and for ANSI software:
-	% ./bin/cpp -ansi < path-to-thing -I./tools/cc/lib/libt/ \
-		-I./tools/cc/lib/libt/h/ -I./tools/cc/lib/libc/ \
-		-I./tools/cc/lib/libc/h/ | ./bin/srctoir | ./bin/irtoas \
-		| ./bin/as > file.bin
+	./bin/compile file.c file.bin
+
+where file.c is the C language file and file.bin is the output bytecode.
+
+
+
 
 todo:
 	- add more conditionals

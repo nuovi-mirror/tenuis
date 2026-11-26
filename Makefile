@@ -16,6 +16,8 @@ ${OUT}:
 	mkdir -p ${OUT}
 
 all: vm as cc
+	cp tools/misc/asappnd.awk bin/asappnd
+	cp tools/misc/compile.sh bin/compile
 clean:
 	rm -rf bin
 	rm -rf objs
