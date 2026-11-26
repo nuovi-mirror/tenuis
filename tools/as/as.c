@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,6 +41,35 @@ int instruction_size(const char *mnemonic) {
 
 	if (!info) return -1;
 	return 1 + (int)strlen(info->operands);
+}
+
+static size_t parse_word_repeat(const char *text, word *value) {
+	const char *literal = text;
+	size_t count = 1;
+
+	if (*literal == 'x') {
+		literal++;
+
+		if (!isdigit((unsigned char)*literal))
+			asm_error("invalid .word repeat count");
+
+		char *end;
+		errno = 0;
+		unsigned long n = strtoul(literal, &end, 10);
+
+		if (errno == ERANGE || *end != ' ' || n == 0 || n > (size_t)-1)
+			asm_error("invalid .word repeat count");
+
+		count = (size_t)n;
+
+		while (*end == ' ') end++;
+		literal = end;
+	}
+
+	if (!parse_literal(literal, value))
+		asm_error("invalid .word literal");
+
+	return count;
 }
 
 void first_pass(const char *filename) {
@@ -135,11 +165,12 @@ void first_pass(const char *filename) {
 			if (parsed.operand_count != 1) asm_error(".word requires one operand");
 
 			word value;
+			size_t count = parse_word_repeat(parsed.operands[0], &value);
 
-			if (!parse_literal(parsed.operands[0], &value)) asm_error("invalid .word literal");
-			if (data_pc == (word)~(word)0) asm_error("data segment is too large");
+			if (count > (size_t)((word)~(word)0 - data_pc))
+				asm_error("data segment is too large");
 
-			data_pc++;
+			data_pc += (word)count;
 			continue;
 		}
 
@@ -229,7 +260,13 @@ void second_pass(const char *filename) {
 		if (in_data) {
 			if (strcmp(parsed.mnemonic, ".word") != 0) asm_error("unexpected directive in data section");
 			require_operands(&parsed, 1);
-			emit_data(get_literal(parsed.operands[0]));
+
+			word value;
+			size_t count = parse_word_repeat(parsed.operands[0], &value);
+
+			for (size_t i = 0; i < count; i++)
+				emit_data(value);
+
 			continue;
 		}
 
@@ -313,3 +350,4 @@ int main(int argc, char **argv) {
 
 	return EXIT_SUCCESS;
 }
+
