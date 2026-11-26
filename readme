@@ -16,18 +16,19 @@ preprocessor step if the software being compiled needs ANSI C.
 
 eg. for native software:
 	% ./bin/cpp < path-to-thing -I./tools/cc/lib/libt/ \
-		-I./tools/cc/lib/libt/h/ | ./bin/srctoir > file.ir
+		-I./tools/cc/lib/libt/h/ | ./bin/srctoir | ./bin/irtoas \
+		| ./bin/as >file.bin
 
 and for ANSI software:
 	% ./bin/cpp -ansi < path-to-thing -I./tools/cc/lib/libt/ \
 		-I./tools/cc/lib/libt/h/ -I./tools/cc/lib/libc/ \
-		-I./tools/cc/lib/libc/h/ | ./bin/srctoir > file.ir
+		-I./tools/cc/lib/libc/h/ | ./bin/srctoir | ./bin/irtoas \
+		| ./bin/as > file.bin
 
 todo:
 	- add more conditionals
 	- add floating-point opcodes
 	- add more useful fused opcodes
 	- write documentaion on the IR and C dialects
-	- add an IR to assembler compiler
 	- add an IR optimizer
 	- add an assembler optimizer

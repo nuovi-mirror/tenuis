@@ -149,3 +149,18 @@ int lex_escape (const char **pp) {
 	*pp = p;
 	return c;
 }
+
+char *read_all (FILE *fp) {
+	Buf b = {0};
+	char chunk[4096];
+	unsigned long n;
+
+	while ((n = fread(chunk, 1, sizeof chunk, fp)) > 0) {
+		bgrow(&b, n);
+		memcpy(b.s + b.len, chunk, n);
+		b.len += n;
+		b.s[b.len] = 0;
+	}
+	if (!b.s) return xstrdup("");
+	return b.s;
+}

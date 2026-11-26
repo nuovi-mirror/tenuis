@@ -1625,21 +1625,6 @@ void parse_global_var (Type base, Type first, char *name) {
 	expect_p(";");
 }
 
-char *read_all (FILE *fp) {
-	Buf b = {0};
-	char chunk[4096];
-	unsigned long n;
-
-	while ((n = fread(chunk, 1, sizeof chunk, fp)) > 0) {
-		bgrow(&b, n);
-		memcpy(b.s + b.len, chunk, n);
-		b.len += n;
-		b.s[b.len] = 0;
-	}
-	if (!b.s) return xstrdup("");
-	return b.s;
-}
-
 void parse_top (void) {
 	while (cur()->kind != T_EOF) {
 		Type base, first, rets[MAXRET];

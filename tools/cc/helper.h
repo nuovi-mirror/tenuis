@@ -33,4 +33,7 @@ char *bstr (Buf *b);
 int hexval (int c);
 int lex_escape (const char **pp);
 
+char *read_all (FILE *fp);
+
 #endif
+

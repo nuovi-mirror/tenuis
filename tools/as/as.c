@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,32 +5,20 @@
 #include <errno.h>
 #include "vm.h"
 #include "as.h"
-
-struct opcode_info {
-	const char *name;	/* upper case; the mnemonic is the lower case form */
-	word opcode;
-	const char *operands;	/* one kind letter per operand */
-};
-
-static const struct opcode_info opcode_table[] = {
-#define OPCODE(name, value, handler, operands) { #name, VMOPCODE_##name, operands },
-#include "opcodes.def"
-#undef OPCODE
-};
-
-#define OPCODE_COUNT (sizeof(opcode_table) / sizeof(opcode_table[0]))
+#include "helper.h"
 
 /* the parser lower-cases mnemonics, so compare with the lower-case name */
-static int mnemonic_matches(const char *name, const char *mnemonic) {
+int mnemonic_matches(const char *name, const char *mnemonic) {
 	for (; *name && *mnemonic; name++, mnemonic++)
 		if (tolower((unsigned char)*name) != (unsigned char)*mnemonic) return 0;
 
 	return !*name && !*mnemonic;
 }
 
-static const struct opcode_info *find_opcode(const char *mnemonic) {
-	for (size_t i = 0; i < OPCODE_COUNT; i++)
-		if (mnemonic_matches(opcode_table[i].name, mnemonic)) return &opcode_table[i];
+struct opcode_info *find_opcode(const char *mnemonic) {
+	for (size_t i = 0; i < opcode_count; i++)
+		if (mnemonic_matches(opcode_table[i].name, mnemonic))
+			return &opcode_table[i];
 
 	return NULL;
 }
@@ -43,9 +30,9 @@ int instruction_size(const char *mnemonic) {
 	return 1 + (int)strlen(info->operands);
 }
 
-static size_t parse_word_repeat(const char *text, word *value) {
+unsigned long parse_word_repeat(const char *text, word *value) {
 	const char *literal = text;
-	size_t count = 1;
+	unsigned long count = 1;
 
 	if (*literal == 'x') {
 		literal++;
@@ -57,10 +44,10 @@ static size_t parse_word_repeat(const char *text, word *value) {
 		errno = 0;
 		unsigned long n = strtoul(literal, &end, 10);
 
-		if (errno == ERANGE || *end != ' ' || n == 0 || n > (size_t)-1)
+		if (errno == ERANGE || *end != ' ' || n == 0 || n > (unsigned long)-1)
 			asm_error("invalid .word repeat count");
 
-		count = (size_t)n;
+		count = (unsigned long)n;
 
 		while (*end == ' ') end++;
 		literal = end;
@@ -72,22 +59,16 @@ static size_t parse_word_repeat(const char *text, word *value) {
 	return count;
 }
 
-void first_pass(const char *filename) {
-	FILE *file = fopen(filename, "r");
-
-	if (!file) {
-		perror(filename);
-		exit(EXIT_FAILURE);
-	}
-
-	char line[MAX_LINE];
+void first_pass(char *source) {
+	char *cursor = source;
+	char *line;
 
 	word code_pc = 0;
 	word data_pc = 0;
 
 	int in_data = 0;
 
-	while (fgets(line, sizeof(line), file)) {
+	while ((line = next_line(&cursor)) != NULL) {
 		ParsedLine parsed;
 		parse_line(line, &parsed);
 
@@ -165,9 +146,9 @@ void first_pass(const char *filename) {
 			if (parsed.operand_count != 1) asm_error(".word requires one operand");
 
 			word value;
-			size_t count = parse_word_repeat(parsed.operands[0], &value);
+			unsigned long count = parse_word_repeat(parsed.operands[0], &value);
 
-			if (count > (size_t)((word)~(word)0 - data_pc))
+			if (count > (unsigned long)((word)~(word)0 - data_pc))
 				asm_error("data segment is too large");
 
 			data_pc += (word)count;
@@ -185,15 +166,13 @@ void first_pass(const char *filename) {
 		code_pc += (word)size;
 	}
 
-	fclose(file);
-
 	if (code_pc == 0) asm_error("program contains no instructions");
 
-	code_capacity = (size_t)code_pc;
-	data_capacity = (size_t)data_pc;
+	code_capacity = (unsigned long)code_pc;
+	data_capacity = (unsigned long)data_pc;
 
-	if (code_capacity > ((size_t)-1) / sizeof(word)) asm_error("code is too large");
-	if (data_capacity > ((size_t)-1) / sizeof(word)) asm_error("data is too large");
+	if (code_capacity > ((unsigned long)-1) / sizeof(word)) asm_error("code is too large");
+	if (data_capacity > ((unsigned long)-1) / sizeof(word)) asm_error("data is too large");
 
 	code = malloc(code_capacity * sizeof(word));
 	if (!code) asm_error("out of memory");
@@ -227,19 +206,12 @@ void assemble_instruction(const ParsedLine *line) {
 	}
 }
 
-void second_pass(const char *filename) {
-	FILE *file = fopen(filename, "r");
-
-	if (!file) {
-		perror(filename);
-		exit(EXIT_FAILURE);
-	}
-
-	char line[MAX_LINE];
-
+void second_pass(char *source) {
 	int in_data = 0;
+	char *cursor = source;
+	char *line;
 
-	while (fgets(line, sizeof(line), file)) {
+	while ((line = next_line(&cursor)) != NULL) {
 		ParsedLine parsed;
 
 		parse_line(line, &parsed);
@@ -262,9 +234,9 @@ void second_pass(const char *filename) {
 			require_operands(&parsed, 1);
 
 			word value;
-			size_t count = parse_word_repeat(parsed.operands[0], &value);
+			unsigned long count = parse_word_repeat(parsed.operands[0], &value);
 
-			for (size_t i = 0; i < count; i++)
+			for (unsigned long i = 0; i < count; i++)
 				emit_data(value);
 
 			continue;
@@ -273,7 +245,6 @@ void second_pass(const char *filename) {
 		assemble_instruction(&parsed);
 	}
 
-	fclose(file);
 	if (code_count == 0) asm_error("no code was assembled");
 }
 
@@ -288,7 +259,7 @@ void write_word(FILE *file, word value) {
 	if (fwrite(bytes, 1, 4, file) != 4) asm_error("failed to write output file");
 }
 
-void write_output(const char *filename) {
+void write_output(FILE *file) {
 	word entry;
 
 	if (!parse_address(entry_name, &entry)) asm_error("entry refers to an unknown label or invalid address");
@@ -296,12 +267,10 @@ void write_output(const char *filename) {
 	if ((dword)code_count > (dword)heap_size) asm_error("code does not fit in heap");
 	if ((dword)data_count > (dword)heap_size - (dword)code_count) asm_error("data does not fit in heap");
 	if ((dword)entry >= (dword)code_count) asm_error("entry address is outside the code segment");
-	if (code_count > (size_t)~(word)0 || data_count > (size_t)~(word)0) asm_error("segment is too large");
-
-	FILE *file = fopen(filename, "wb");
+	if (code_count > (unsigned long)~(word)0 || data_count > (unsigned long)~(word)0) asm_error("segment is too large");
 
 	if (!file) {
-		perror(filename);
+		perror("<stdin>");
 		exit(EXIT_FAILURE);
 	}
 
@@ -321,29 +290,37 @@ void write_output(const char *filename) {
 
 	/* write the header */
 	for (unsigned int i = 0; i < VMHEADERWORDS; i++) write_word(file, header[i]);
-	for (size_t i = 0; i < code_count; i++) write_word(file, code[i]);
-	for (size_t i = 0; i < data_count; i++) write_word(file, data[i]);
-	if (fclose(file) != 0) asm_error("failed to close output file");
+	for (unsigned long i = 0; i < code_count; i++) write_word(file, code[i]);
+	for (unsigned long i = 0; i < data_count; i++) write_word(file, data[i]);
 }
 
-int main(int argc, char **argv) {
-	if (argc != 3) {
-		fprintf(stderr, "Usage: %s input.asm output.vmb\n", argv[0]);
+int main(void) {
+	char *source = read_stdin();
+	if (!source) return EXIT_FAILURE;
+
+	unsigned long source_len = strlen(source);
+	char *source_cpy = malloc(source_len + 1);
+
+	if (!source_cpy) {
+		free(source);
+		fprintf(stderr, "assembler: out of memory\n");
 		return EXIT_FAILURE;
 	}
 
-	first_pass(argv[1]);
-	second_pass(argv[1]);
-	write_output(argv[2]);
+	memcpy(source_cpy, source, source_len + 1);
+
+	first_pass(source);
+	second_pass(source_cpy);
+	write_output(stdout);
 
 	word entry_address = 0;
 	parse_address(entry_name, &entry_address);
 
-	printf("Assembled %zu code words and %zu data words.\n", code_count, data_count);
-	printf("Heap size: %u words\n", (unsigned int)heap_size);
-	printf("Entry point: %u\n", (unsigned int)entry_address);
-	if (multi == 0) printf("Processor memory locks disabled\n");
-	else if (multi == 1) printf("Processor memory locks enabled\n");
+	fprintf(stderr, "Assembled %zu code words and %zu data words.\n", code_count, data_count);
+	fprintf(stderr, "Heap size: %u words\n", (unsigned int)heap_size);
+	fprintf(stderr, "Entry point: %u\n", (unsigned int)entry_address);
+	if (multi == 0) fprintf(stderr, "Processor memory locks disabled\n");
+	else if (multi == 1) fprintf(stderr, "Processor memory locks enabled\n");
 
 	free(code);
 	free(data);

@@ -1,6 +1,6 @@
 A small C compiler tool suite for Tenuis. This is a small C subdialect
 based on ANSI C99, plus a few libraries intended to make it mostly
-compatable with ANSI C99. This contains a preprocessor and C to IR
-compiler. An IR to Assembler compiler, IR optimizer, and Assembler
-optimizer are in the works. Each one reads text from stdin and writes the
-result to stdout.
+compatable with ANSI C99. This contains a preprocessor, a C to IR
+compiler, and a (naive, unoptimized) IR to Assembler compiler. An IR
+optimizer and Assembler optimizer are in the works. Each one reads text
+from stdin and writes the result to stdout.

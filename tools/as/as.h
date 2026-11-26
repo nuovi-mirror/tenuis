@@ -1,3 +1,6 @@
+#ifndef h_as_
+#define h_as_
+
 #include "vm.h"
 
 #define MAX_LINE        1024
@@ -6,6 +9,17 @@
 #define MAX_OPERANDS    3
 
 #define DEFAULT_HEAP_SIZE (1024u * 1024u)
+
+/*
+extern const struct opcode_info opcode_table[];
+extern unsigned long opcode_count;
+*/
+
+struct opcode_info {
+	const char *name;	/* upper case; the mnemonic is the lower case form */
+	word opcode;
+	const char *operands;	/* one kind letter per operand */
+};
 
 typedef struct {
 	char name[MAX_LABEL_LEN];
@@ -65,7 +79,9 @@ void emit_data(word value);
 
 /* as.c */
 int instruction_size(const char *mnemonic);
-void first_pass(const char *filename);
 void assemble_instruction(const ParsedLine *line);	
-void second_pass(const char *filename);
-void write_output(const char *filename);
+void first_pass(char *src);
+void second_pass(char *src);
+void write_output(FILE *file);
+
+#endif

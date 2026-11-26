@@ -64,7 +64,7 @@ int parse_string32(const char *text, word *value) {
 	if (!text || text[0] != '"') return 0;
 
 	byte bytes[4] = {0, 0, 0, 0};
-	size_t count = 0;
+	unsigned long count = 0;
 
 	const char *p = text + 1;
 
@@ -153,7 +153,7 @@ int parse_literal(const char *text, word *value) {
 }
 
 int find_label(const char *name, word *address) {
-	for (size_t i = 0; i < label_count; i++) {
+	for (unsigned long i = 0; i < label_count; i++) {
 		if (strcmp(labels[i].name, name) == 0) {
 			*address = labels[i].address;
 			return 1;
@@ -206,13 +206,13 @@ void parse_line(char *line, ParsedLine *out) {
 	char *mnemonic_end = p;
 	while (*mnemonic_end && !isspace((unsigned char)*mnemonic_end)) mnemonic_end++;
 
-	size_t mnemonic_len = (size_t)(mnemonic_end - p);
+	unsigned long mnemonic_len = (unsigned long)(mnemonic_end - p);
 	if (mnemonic_len >= sizeof(out->mnemonic)) asm_error("mnemonic too long");
 
 	memcpy(out->mnemonic, p, mnemonic_len);
 	out->mnemonic[mnemonic_len] = '\0';
 
-	for (size_t i = 0; i < mnemonic_len; i++)
+	for (unsigned long i = 0; i < mnemonic_len; i++)
 		out->mnemonic[i] = (char)tolower((unsigned char)out->mnemonic[i]);
 
 	p = trim(mnemonic_end);

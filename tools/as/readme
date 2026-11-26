@@ -1,4 +1,2 @@
-A small 1:1 assembler for Tenuis. Takes assembler source code in a file
-as the first argument and writes assembled bytecode to the file at the
-next argument. No optimizing infra; whatever assembler given is preserved
-exactly.
+A simple assembler for Tenuis. This is not an optimizer; input assembler
+is compiled 1:1. reads source from stdin and writes binary to stdout.
