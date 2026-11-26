@@ -301,12 +301,13 @@ void parse_hdr (Toks *t, Hdr *h) {
 	}
 }
 
+
 /* first pass: find the functions, who calls whom, and who allocates */
 void prescan (void) {
 	Toks t = {0};
 	Fn *f = NULL, *c;
 	Hdr h;
-	int i;
+	int i, j;
 
 	for (i = 0; i < nlines; i++) {
 		const char *op;
@@ -320,7 +321,28 @@ void prescan (void) {
 			f = fn_get(h.name);
 			if (f->defined) fail("function '%s' is defined twice", h.name);
 			f->defined = 1;
+			f->external = 0;
 			f->nrets = h.nrets;
+		} else if (!strcmp(op, "External") && !strcmp(tk(&t, 1), "Function")) {
+			Toks ext = t;
+			ext.v++;
+			ext.n--;
+			want(&ext, 1, "(");
+			for (j = 2; j < ext.n && strcmp(ext.v[j], ")"); j++) ;
+			if (j + 2 >= ext.n) fail("malformed External Function line");
+			h.nrets = 1;
+			if (j - 2 == 1 && !strcmp(ext.v[2], "None")) {
+				h.nrets = 0;
+			} else {
+				for (int k = 2; k < j; k++)
+					if (!strcmp(ext.v[k], ",")) h.nrets++;
+			}
+			h.name = ext.v[j + 1];
+			f = fn_get(h.name);
+			if (!f->defined) {
+				f->external = 1;
+				f->nrets = h.nrets;
+			}
 		} else if (!strcmp(op, "Initialize")) {
 			f = fn_get(".init");
 			f->defined = 1;
@@ -342,7 +364,7 @@ void prescan (void) {
 		int k;
 
 		f = fns[i];
-		if (!f->defined && f->refline) {
+		if (!f->defined && !f->external && f->refline) {
 			cur_line = (unsigned)f->refline;
 			fail("call to undefined function '%s'", f->name);
 		}
@@ -355,6 +377,7 @@ void prescan (void) {
 	f = fn_find(entry);
 	if (!f || !f->defined) fail("the Entry function '%s' is not defined", entry);
 }
+
 
 /* operands */
 

@@ -104,7 +104,7 @@ char *expand_text(const char *src, int depth) {
 			int i;
 			while (ident_char((unsigned char)*p)) p++;
 			name = malloc((unsigned long)(p - start) + 1);
-			if (!name) { perror("srctopp: malloc"); exit(1); }
+			if (!name) { perror("cpp: malloc"); exit(1); }
 			memcpy(name, start, (unsigned long)(p - start));
 			name[p - start] = '\0';
 			i = macro_index(name);
@@ -148,7 +148,7 @@ char *directory_of(const char *path) {
 	{
 		unsigned long n = (unsigned long)(slash - path);
 		char *s = malloc(n + 1);
-		if (!s) { perror("srctopp: malloc"); exit(1); }
+		if (!s) { perror("cpp: malloc"); exit(1); }
 		memcpy(s, path, n);
 		s[n] = '\0';
 		return s;
@@ -194,7 +194,7 @@ int process_include(const char *arg, int depth) {
 		return -1;
 	}
 	name = malloc((unsigned long)(end - arg));
-	if (!name) { perror("srctopp: malloc"); exit(1); }
+	if (!name) { perror("cpp: malloc"); exit(1); }
 	memcpy(name, arg + 1, (unsigned long)(end - arg - 1));
 	name[end - arg - 1] = '\0';
 
@@ -323,14 +323,14 @@ int main(int argc, char **argv) {
 		} else if (strcmp(argv[i], "-ansi") == 0) {
 			ansi = 1;
 		} else if (argv[i][0] == '-') {
-			fprintf(stderr, "usage: srctopp [-ansi] [-I dir]... [file]\n");
+			fprintf(stderr, "usage: cpp [-ansi] [-I dir]... [file]\n");
 			return 1;
 		} else if (fp == stdin) {
 			filename = argv[i];
 			fp = fopen(filename, "r");
 			if (!fp) { perror(filename); return 1; }
 		} else {
-			fprintf(stderr, "srctopp: only one input file is accepted\n");
+			fprintf(stderr, "cpp: only one input file is accepted\n");
 			return 1;
 		}
 	}

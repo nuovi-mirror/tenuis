@@ -5,6 +5,17 @@
 void error (struct vm *vm) {
 	if (vm->error == VMERRFATAL) {
 		printf("ERRFATAL: %u: %s\n", vm->errcode, vm->errmsg); 
+
+		printf("PC: %d\n", vm->pc);
+		printf("SP: %d\n", vm->registers[63]);
+		printf("r0: %d\n", vm->registers[0]);
+		printf("r1: %d\n", vm->registers[1]);
+		printf("r2: %d\n", vm->registers[2]);
+		printf("r3: %d\n", vm->registers[3]);
+		printf("r4: %d\n", vm->registers[4]);
+		printf("r5: %d\n", vm->registers[5]);
+		printf("r6: %d\n", vm->registers[6]);
+
 		exit(vm->errcode); 
 	}
 }

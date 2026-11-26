@@ -50,6 +50,7 @@ typedef struct Fn {
 	int usefb;		/* needs to reset the stack when it returns */
 	struct Fn **calls;
 	int ncalls, ccalls;
+	int external;
 } Fn;
 
 typedef struct Opnd {
