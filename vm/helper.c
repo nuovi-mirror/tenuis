@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include "vm.h"
+#include "locks.c"
 
 void error (struct vm *vm) {
 	if (vm->error == VMERRFATAL) {
@@ -89,11 +90,13 @@ void wordcmp (word unum0, word unum1, word *reg) {
 void bwrite (struct vm *vm, word index, word bpos, byte value) {
 	word shift = (3 - bpos) * 8;
 	word mask = 0xFFu << shift;
-	vm->heap[index] = (vm->heap[index] & ~mask) 
-		| ((word)value << shift);
+	word data = hload(vm, index);
+	word new = (data & ~mask) | ((word)value << shift);
+	hstore(vm, index, new);
 }
 
 byte bread (struct vm *vm, word index, word bpos) {
 	word shift = (3 - bpos) * 8;
-	return (byte)((vm->heap[index] >> shift) & 0xFFu);
+	word data = hload(vm, index);
+	return (byte)((data >> shift) & 0xFFu);
 }
