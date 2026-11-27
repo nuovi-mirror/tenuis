@@ -25,6 +25,25 @@
 #define VM_MULTI(vm) ((vm)->multi)
 #endif
 
+static inline void checkaddr (struct vm *vm, word address) {
+	if (address > vm->heapsize) {
+		vm->error = VMERRFATAL;
+		vm->errcode = VMERRCODEHEAPOVERRUN;
+		vm->errmsg = "Heap Overflow!";
+		error(vm);
+	}
+}
+
+static inline word hload (struct vm *vm, word address) {
+	checkaddr(vm, address);
+	return vm->heap[address];
+}
+
+static inline void hstore (struct vm *vm, word address, word data) {
+	checkaddr(vm, address);
+	vm->heap[address] = data;
+}
+
 static inline void rlockmem (struct vm *vm) {
 	if (VM_MULTI(vm) == 0) return;
 	while (atomic_load(&writelock) == 1) ;	/* wait for no writers */

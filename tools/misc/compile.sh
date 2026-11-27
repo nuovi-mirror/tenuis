@@ -14,7 +14,6 @@ cat "$1" | ./bin/cpp \
 	| {
 		cat
 		cat "$dir/tools/cc/lib/libt/memory/copymem.asm"
-		cat "$dir/tools/cc/lib/libt/stdio/iowrite.asm"
-	} | "$dir/bin/asappnd" 
-
-#	| "$dir/bin/as" > "$2"
+		cat "$dir/tools/cc/lib/libt/stdio/riowrite.asm"
+	} | "$dir/bin/asappnd" \
+	| "$dir/bin/as" > "$2"

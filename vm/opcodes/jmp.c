@@ -156,7 +156,8 @@ static inline void opcode_floopcopyfhirfhirr (struct vm *vm) {
 	word dstptr = vm->registers[dstdptr];
 
 	while (i < max) {
-		vm->heap[dstptr + i] = vm->heap[srcptr + i];
+		word value = hload(vm, srcptr + i);
+		hstore(vm, dstptr + i, value);
 		i++;
 	}
 

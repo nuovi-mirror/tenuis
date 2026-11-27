@@ -1,5 +1,8 @@
-#define stdin 0
-#define stdout 1
-#define stderr 2
+#define tstdin 0
+#define tstdout 1
+#define tstderr 2
 
-bool riowrite (word *data, word words);
+bool riowrite (const word *data, word words);
+bool iowrite (word stream, const byte *data, word bytes);
+
+#include <stdio/iowrite.c>

@@ -26,6 +26,7 @@
 
 /* error codes */
 #define VMERRCODEMALFORMEDINPUT 0
+#define VMERRCODEHEAPOVERRUN 1
 
 typedef uint32_t word;
 typedef int32_t sword;
