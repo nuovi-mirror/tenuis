@@ -5,7 +5,7 @@ bool ioread (word stream, byte *buff, word bytes) {
 	word nbytes = words * sizeof(word);
 	byte pbuff[nbytes];
 
-	bool result = rioread((const word *)pbuff, words);
+	bool result = rioread((word *)pbuff, words);
 	/* from rioread.asm */
 
 	copymemb((const byte *)pbuff, buff, bytes);
