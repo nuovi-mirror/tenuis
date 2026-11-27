@@ -1,20 +1,31 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include "vm.h"
 
 void error (struct vm *vm) {
 	if (vm->error == VMERRFATAL) {
 		printf("ERRFATAL: %u: %s\n", vm->errcode, vm->errmsg); 
 
-		printf("PC: %d\n", vm->pc);
-		printf("SP: %d\n", vm->registers[63]);
-		printf("r0: %d\n", vm->registers[0]);
-		printf("r1: %d\n", vm->registers[1]);
-		printf("r2: %d\n", vm->registers[2]);
-		printf("r3: %d\n", vm->registers[3]);
-		printf("r4: %d\n", vm->registers[4]);
-		printf("r5: %d\n", vm->registers[5]);
-		printf("r6: %d\n", vm->registers[6]);
+		printf("pc : 0x%08" PRIX32 "  |  sp : 0x%08" PRIX32 "\n",
+			vm->pc, vm->registers[63]);
+
+
+		for (word i = 0; i < 64; i++) {
+			printf("r%02d: 0x%08" PRIX32, i, vm->registers[i]);
+
+			if (i % 4 == 3) printf("\n");
+			else printf("  |  ");
+		}
+
+		printf("STACK TRACE:\n");
+		word sp = vm->registers[63];
+
+		for (word i = 0; i < 6; i++) {
+			if (sp - i >= vm->heapsize) break;
+			printf("0x%08" PRIX32 "       | 0x%08" PRIX32 "\n", 
+				(word)(sp + i), vm->heap[sp + i]);
+		}
 
 		exit(vm->errcode); 
 	}
