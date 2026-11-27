@@ -1,5 +1,5 @@
-#ifndef libt_h_memory_
-#define libt_h_memory_
+#ifndef __h_libt_memory_
+#define __h_libt_memory_
 
 bool copymem (const word *src, word *dst, word words);
 bool copymemb (const byte *src, byte *dst, word bytes);

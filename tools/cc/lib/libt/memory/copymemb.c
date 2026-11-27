@@ -1,8 +1,4 @@
 bool copymemb (const byte *src, byte *dst, word len) {
-	for (word i = 0; i < len; i++)
-		dst[i] = src[i];
-
-/*
 	word words = len / sizeof(word);
 	byte *d = (byte *)dst;
 	const byte *s = (const byte *)src;
@@ -13,7 +9,6 @@ bool copymemb (const byte *src, byte *dst, word len) {
 		d[i] = s[i];
 		i++;
 	}
-*/
 
 	return(true);
 }

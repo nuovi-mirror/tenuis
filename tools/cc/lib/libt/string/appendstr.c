@@ -1,5 +1,3 @@
-#include <string/lenofstr.c>
-
 word appendstr (const byte *src, byte *dst) {
 	word len = lenofstr(dst);
 	word i = 0;
