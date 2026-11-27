@@ -63,6 +63,8 @@ struct vm {
 };
 
 void error (struct vm *vm);
+void vmdump (struct vm *vm);
+const char *opcname (word opcode);
 
 void setbit (word *reg, unsigned int bit);
 void unsetbit (word *reg, unsigned int bit);

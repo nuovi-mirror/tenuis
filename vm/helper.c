@@ -6,28 +6,52 @@
 void error (struct vm *vm) {
 	if (vm->error == VMERRFATAL) {
 		printf("ERRFATAL: %u: %s\n", vm->errcode, vm->errmsg); 
+		vmdump(vm);
+		exit(vm->errcode); 
+	}
+}
 
-		printf("pc : 0x%08" PRIX32 "  |  sp : 0x%08" PRIX32 "\n",
-			vm->pc, vm->registers[63]);
+void vmdump (struct vm *vm) {
+	printf("pc : 0x%08" PRIX32 "\nsp : 0x%08" PRIX32 "\n",
+		vm->pc, vm->registers[63]);
 
-
-		for (word i = 0; i < 64; i++) {
-			printf("r%02d: 0x%08" PRIX32, i, vm->registers[i]);
-
+	for (word i = 0; i < 64; i++) {
+		printf("r%02d: 0x%08" PRIX32, i, vm->registers[i]);
 			if (i % 4 == 3) printf("\n");
 			else printf("  |  ");
-		}
+	}
 
-		printf("STACK TRACE:\n");
-		word sp = vm->registers[63];
+	printf("Stack trace:\n");
+	word sp = vm->registers[63];
 
-		for (word i = 0; i < 6; i++) {
-			if (sp - i >= vm->heapsize) break;
-			printf("0x%08" PRIX32 "       | 0x%08" PRIX32 "\n", 
-				(word)(sp + i), vm->heap[sp + i]);
-		}
+	for (word i = 0; i < 6 && i <= sp; i++) {
+	printf("0x%08" PRIX32 " | 0x%08" PRIX32 "\n",
+		sp - i, vm->heap[sp - i]);
+	}
 
-		exit(vm->errcode); 
+	printf("Instructions:\n");
+	word index = vm->pc - 4;
+	word highest = vm->pc + 3;
+
+	if (highest >= vm->heapsize) highest = vm->heapsize - 1;
+
+	while (index < highest) {
+		printf("0x%08" PRIX32 ": 0x%08" PRIX32 " (%s)",
+			index, vm->heap[index], opcname(vm->heap[index]));
+		if (vm->pc == index) printf(" <= currently here");
+		printf("\n");
+		index++;
+	}
+}
+
+const char *opcname(word opcode) {
+	switch (opcode) {
+#define OPCODE(name, value, func, args) \
+			case value: return #func;
+#include "opcodes.def"
+#undef OPCODE
+
+		default: return "unknown";
 	}
 }
 
