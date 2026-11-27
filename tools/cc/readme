@@ -4,3 +4,8 @@ compatable with ANSI C99. This contains a preprocessor, a C to IR
 compiler, and a (naive, unoptimized) IR to Assembler compiler. An IR
 optimizer and Assembler optimizer are in the works. Each one reads text
 from stdin and writes the result to stdout.
+
+Note: A few instructions have been added since after the IR -> ASM compiler
+was made; at some point, the awkward cases using bit shifts or multi-
+instructio sequences to emulate the ones that didnt exist beforehand
+will be replaced.
