@@ -126,6 +126,7 @@ void first_pass(char *source) {
 			if (in_data) asm_error("stack directive must be before .data");
 			if (parsed.operand_count != 1) asm_error("stack requires one operand");
 			if (!parse_number(parsed.operands[0], &stackptr)) asm_error("invalid stack base pointer");
+			stack_seen = 1;
 
 			continue;
 		}
@@ -268,6 +269,7 @@ void write_output(FILE *file) {
 	if ((dword)data_count > (dword)heap_size - (dword)code_count) asm_error("data does not fit in heap");
 	if ((dword)entry >= (dword)code_count) asm_error("entry address is outside the code segment");
 	if (code_count > (unsigned long)~(word)0 || data_count > (unsigned long)~(word)0) asm_error("segment is too large");
+	if (!stack_seen) stackptr = (word)(code_count + data_count);
 
 	if (!file) {
 		perror("<stdin>");

@@ -46,6 +46,7 @@ extern size_t data_capacity;
 
 extern word heap_size;
 extern word stackptr;
+extern int stack_seen;
 
 extern char entry_name[128];
 extern int entry_seen;

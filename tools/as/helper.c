@@ -20,6 +20,7 @@ unsigned long data_capacity = 0;
 
 word heap_size = DEFAULT_HEAP_SIZE;
 word stackptr;
+int stack_seen = 0;
 
 char entry_name[128] = "0";
 int entry_seen = 0;

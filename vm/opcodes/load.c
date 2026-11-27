@@ -61,7 +61,7 @@ static inline void opcode_loadfhirr (struct vm *vm) {
 	rlockmem(vm);
 	word reg0 = hload(vm, ++vm->pc);
 	word reg1 = hload(vm, ++vm->pc);
-	word addr = hload(vm, reg0);
+	word addr = vm->registers[reg0];
 	word value = hload(vm, addr);
 	vm->registers[reg1] = value;
 	frlockmem(vm);
