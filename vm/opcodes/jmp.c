@@ -77,6 +77,66 @@ static inline void opcode_jmpnerh (struct vm *vm) {
 	frlockmem(vm);
 }
 
+/* goto addr in register if packed status code in register marks l > r */
+static inline void opcode_jmpgrr (struct vm *vm) {
+	rlockmem(vm);
+	word reg = vm->heap[++vm->pc];
+	word jmp = vm->heap[++vm->pc];
+	frlockmem(vm);
+	unsigned int bit = checkbit(vm->registers[reg], 2);
+	if (bit == 1) vm->pc = vm->registers[jmp] - 1;
+}
+
+/* goto addr literal if packed status code in register marks l > r */
+static inline void opcode_jmpgrl (struct vm *vm) {
+	rlockmem(vm);
+	word reg = vm->heap[++vm->pc];
+	word jmp = vm->heap[++vm->pc];
+	frlockmem(vm);
+	unsigned int bit = checkbit(vm->registers[reg], 2);
+	if (bit == 1) vm->pc = jmp - 1;
+}
+
+/* goto addr in memory if packed status code in register marks l > r */
+static inline void opcode_jmpgrh (struct vm *vm) {
+	rlockmem(vm);
+	word reg = vm->heap[++vm->pc];
+	word jmp = vm->heap[++vm->pc];
+	unsigned int bit = checkbit(vm->registers[reg], 2);
+	if (bit == 1) vm->pc = vm->heap[jmp] - 1;
+	frlockmem(vm);
+}
+
+/* goto addr in register if packed status code in register marks l >= r */
+static inline void opcode_jmpgerr (struct vm *vm) {
+	rlockmem(vm);
+	word reg = vm->heap[++vm->pc];
+	word jmp = vm->heap[++vm->pc];
+	frlockmem(vm);
+	unsigned int bit = checkbit(vm->registers[reg], 6);
+	if (bit == 1) vm->pc = vm->registers[jmp] - 1;
+}
+
+/* goto addr literal if packed status code in register marks l >= r */
+static inline void opcode_jmpgerl (struct vm *vm) {
+	rlockmem(vm);
+	word reg = vm->heap[++vm->pc];
+	word jmp = vm->heap[++vm->pc];
+	frlockmem(vm);
+	unsigned int bit = checkbit(vm->registers[reg], 6);
+	if (bit == 1) vm->pc = jmp - 1;
+}
+
+/* goto addr in memory if packed status code in register marks l >= r */
+static inline void opcode_jmpgerh (struct vm *vm) {
+	rlockmem(vm);
+	word reg = vm->heap[++vm->pc];
+	word jmp = vm->heap[++vm->pc];
+	unsigned int bit = checkbit(vm->registers[reg], 6);
+	if (bit == 1) vm->pc = vm->heap[jmp] - 1;
+	frlockmem(vm);
+}
+
 /* fused compare and jump if reg is zero to literal address */
 static inline void opcode_fjmpzrl (struct vm *vm) {
 	rlockmem(vm);

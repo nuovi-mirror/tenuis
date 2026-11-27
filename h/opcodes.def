@@ -23,12 +23,23 @@ OPCODE(PRINTL, 0x06, printl, "l")
 
 OPCODE(JMPL, 0x07, jmpl, "l")
 OPCODE(JMPR, 0x08, jmpr, "r")
+
 OPCODE(JMPERR, 0x0C, jmperr, "rr")
 OPCODE(JMPERL, 0x0D, jmperl, "rl")
 OPCODE(JMPERH, 0x25, jmperh, "rh")
+
+OPCODE(JMPGRR, 0xA7, jmpgrr, "rr")
+OPCODE(JMPGRL, 0xA8, jmpgrh, "rl")
+OPCODE(JMPGRH, 0xA9, jmpgrl, "rh")
+
+OPCODE(JMPGERR, 0xAA, jmpgerr, "rr")
+OPCODE(JMPGERL, 0xAB, jmpgerh, "rl")
+OPCODE(JMPGERH, 0xAC, jmpgerl, "rh")
+
 OPCODE(JMPNERL, 0x26, jmpnerl, "rl")
 OPCODE(JMPNERR, 0x27, jmpnerr, "rr")
 OPCODE(JMPNERH, 0x28, jmpnerh, "rh")
+
 OPCODE(FJMPZRL, 0x2A, fjmpzrl, "rl")
 OPCODE(FJMPNERRL, 0x2B, fjmpnerrl, "rrl")
 OPCODE(FJMPERRL, 0x2C, fjmperrl, "rrl")
@@ -174,4 +185,4 @@ OPCODE(SPAWNLL, 0x2F, spawnll, "ll")
 OPCODE(SPAWNRL, 0x30, spawnrl, "rl")
 OPCODE(STOP, 0x31, stop, "")
 
-OPCODE(__END, 0xA7, __end, "")
+OPCODE(__END, 0xAD, __end, "")

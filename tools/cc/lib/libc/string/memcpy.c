@@ -1,16 +1,6 @@
 #include <libt/memory.h>
 
 void *memcpy (void *dst, const void *src, size_t len) {
-	word words = len / sizeof(word);
-	byte *d = (byte *)dst;
-	const byte *s = (const byte *)src;
-
-	copymem((const word *)src, (word *)dst, words);
-	word i = words * sizeof(word);
-	while (i < len) {
-		d[i] = s[i];
-		i++;
-	}
-
+	copymemb((const byte *)src, (byte *)dst, (byte)len);
 	return(dst);
 }
