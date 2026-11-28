@@ -1,3 +1,4 @@
+#include <string.h>
 #include "vm.h"
 #include "../locks.c"
 
@@ -206,7 +207,6 @@ static inline void opcode_loopnzrl (struct vm *vm) {
 
 /* while (i < max) dst[i] = src[i++]; (kind-of) */
 static inline void opcode_floopcopyfhirfhirr (struct vm *vm) {
-	word i = 0;
 	wlockmem(vm);
 	word srcdptr = hload(vm, ++vm->pc);
 	word dstdptr = hload(vm, ++vm->pc);
@@ -215,17 +215,16 @@ static inline void opcode_floopcopyfhirfhirr (struct vm *vm) {
 	word srcptr = vm->registers[srcdptr];
 	word dstptr = vm->registers[dstdptr];
 
-	/* check if we can perform the operation */
-	volatile word xxx1 = hload(vm, srcptr + max);
-	volatile word xxx2 = hload(vm, dstptr + max);
+	/* check both ranges once; we would have faulted if they were
+	 * invalid, so the copy itself needs no checks */
+	checkrange(vm, srcptr, max);
+	checkrange(vm, dstptr, max);
 
-	/* we would have faulted if those addresses were invalid
-	 * we dont need to check them in the loop now */
-
-	while (i < max) {
-		word value = vm->heap[srcptr + i];
-		vm->heap[dstptr + i] = value;
-		i++;
+	if (dstptr > srcptr && dstptr - srcptr < max) {
+		for (word i = 0; i < max; i++)
+			vm->heap[dstptr + i] = vm->heap[srcptr + i];
+	} else {
+		memmove(vm->heap + dstptr, vm->heap + srcptr, (size_t)max * sizeof(word));
 	}
 
 	fwlockmem(vm);
@@ -233,7 +232,6 @@ static inline void opcode_floopcopyfhirfhirr (struct vm *vm) {
 
 /* looped memory compare */
 static inline void opcode_floopeqlfhirfhirrr (struct vm *vm) {
-	word i = 0;
 	rlockmem(vm);
 	word srcdptr = hload(vm, ++vm->pc);
 	word dstdptr = hload(vm, ++vm->pc);
@@ -243,24 +241,10 @@ static inline void opcode_floopeqlfhirfhirrr (struct vm *vm) {
 	word srcptr = vm->registers[srcdptr];
 	word dstptr = vm->registers[dstdptr];
 
-	volatile word xxx1 = hload(vm, srcptr + max);
-	volatile word xxx2 = hload(vm, dstptr + max);
 	/* same deal as the opcode above me */
+	checkrange(vm, srcptr, max);
+	checkrange(vm, dstptr, max);
 
-	while (i < max) {
-		if (i > maxreg) break;
-		word a = vm->heap[srcptr + i];
-		word b = vm->heap[dstptr + i];
-
-		if (a != b) {
-			vm->registers[destreg] = 0;
-			frlockmem(vm);
-			return;
-		}
-
-		i++;
-	}
-
-	vm->registers[destreg] = 1;
+	vm->registers[destreg] = memcmp(vm->heap + srcptr, vm->heap + dstptr, (size_t)max * sizeof(word)) == 0;
 	frlockmem(vm);
 }

@@ -18,15 +18,21 @@
 /* XXX C11 needed for this; could be replaced by a POSIX
  * backend, but this method is easier to reason about */
 
-/* VM_MULTI(vm) says whether locking is on. By default it reads the flag at
- * runtime; vm_single.c and vm_multi.c define it as a constant before this
- * file is included, so the compiler deletes the checks entirely */
 #ifndef VM_MULTI
 #define VM_MULTI(vm) ((vm)->multi)
 #endif
 
 static inline void checkaddr (struct vm *vm, word address) {
 	if (address > vm->heapsize) {
+		vm->error = VMERRFATAL;
+		vm->errcode = VMERRCODEHEAPOVERRUN;
+		vm->errmsg = "Heap Overflow!";
+		error(vm);
+	}
+}
+
+static inline void checkrange (struct vm *vm, word address, word count) {
+	if ((dword)address + count > vm->heapsize) {
 		vm->error = VMERRFATAL;
 		vm->errcode = VMERRCODEHEAPOVERRUN;
 		vm->errmsg = "Heap Overflow!";
