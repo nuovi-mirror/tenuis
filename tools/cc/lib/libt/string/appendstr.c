@@ -1,4 +1,4 @@
-word appendstr (const byte *src, byte *dst) {
+word appendstr (byte *dst, const byte *src) {
 	word len = lenofstr(dst);
 	word i = 0;
 
@@ -8,6 +8,6 @@ word appendstr (const byte *src, byte *dst) {
 		len++;
 	}
 
-	word ret = i + len;
-	return(ret);
+	dst[len] = '\0';
+	return(len);
 }

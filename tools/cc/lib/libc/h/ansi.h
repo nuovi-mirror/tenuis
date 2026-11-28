@@ -1,3 +1,6 @@
+#ifndef __ansi__
+#define __ansi__
+
 #define unsigned
 #define signed
 
@@ -13,3 +16,4 @@ typedef byte char;
 typedef word short;
 typedef word size_t;
 
+#endif
