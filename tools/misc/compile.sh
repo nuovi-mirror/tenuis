@@ -10,6 +10,7 @@ cat "$1" | ./bin/cpp \
 	-I"$dir/tools/cc/lib/libc/" \
 	-I"$dir/tools/cc/lib/libc/h/" \
 	| "$dir/bin/srctoir" \
+	| "$dir/bin/irop" \
 	| "$dir/bin/irtoasm" \
 	| {
 		cat

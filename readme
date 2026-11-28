@@ -31,5 +31,7 @@ todo:
 	- add floating-point opcodes
 	- add more useful fused opcodes
 	- write documentaion on the IR and C dialects
-	- add an IR optimizer
+	- improve the IR optimizer
 	- add an assembler optimizer
+	- add structs, enums, and unions to the C subdialect
+	- get ANSI C compat

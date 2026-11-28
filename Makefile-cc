@@ -13,6 +13,13 @@ CC_IRTOASM_OBJS = \
 CC_IRTOASM_SRCS = \
 	tools/cc/irtoasm.c
 
+CC_IROP_OBJS = \
+	${OBJDIR}/tools/cc/irop.o \
+	${OBJDIR}/tools/cc/helper.o
+
+CC_IROP_SRCS = \
+	tools/cc/irop.c
+
 CC_CPP_OBJS = \
 	${OBJDIR}/tools/cc/cpp.o \
 	${OBJDIR}/tools/cc/helper.o 
@@ -29,11 +36,15 @@ cpp: ${CC_CPP_OBJS} ${OUT} ${OBJDIR}/tools/cc
 	${CC} ${CFLAGS} ${CFLAGS_CC} ${LDFLAGS} -o bin/cpp \
 		${CC_CPP_OBJS}
 
+irop: ${CC_IROP_OBJS} ${OUT} ${OBJDIR}/tools/cc
+	${CC} ${CFLAGS} ${CFLAGS_CC} ${LDFLAGS} -o bin/irop \
+		${CC_IROP_OBJS}
+
 irtoasm: ${CC_IRTOASM_OBJS} ${OUT} ${OBJDIR}/tools/cc
 	${CC} ${CFLAGS} ${CFLAGS_CC} ${LDFLAGS} -o bin/irtoasm \
 		${CC_IRTOASM_OBJS}
 
-cc: cpp srctoir irtoasm
+cc: cpp srctoir irop irtoasm
 
 ${OBJDIR}/tools/cc:
 	mkdir -p ${OBJDIR}/tools/cc
@@ -48,6 +59,11 @@ ${OBJDIR}/${src:R}.o: ${src} ${OBJDIR}/tools/cc
 	${CC} ${CFLAGS} ${CFLAGS_CC} -c ${src} -o ${.TARGET}
 .endfor
 
+.for src in ${CC_IROP_SRCS}
+${OBJDIR}/${src:R}.o: ${src} ${OBJDIR}/tools/cc
+	${CC} ${CFLAGS} ${CFLAGS_CC} -c ${src} -o ${.TARGET}
+.endfor
+
 .for src in ${CC_CPP_SRCS}
 ${OBJDIR}/${src:R}.o: ${src} ${OBJDIR}/tools/cc
 	${CC} ${CFLAGS} ${CFLAGS_CC} -c ${src} -o ${.TARGET}
@@ -56,3 +72,4 @@ ${OBJDIR}/${src:R}.o: ${src} ${OBJDIR}/tools/cc
 ${OBJDIR}/tools/cc/srctoir.o: h/vm.h tools/cc/srctoir.h tools/cc/helper.h
 ${OBJDIR}/tools/cc/irtoasm.o: tools/cc/helper.h
 ${OBJDIR}/tools/cc/cpp.o: h/vm.h tools/cc/cpp.h tools/cc/helper.h
+${OBJDIR}/tools/cc/irop.o: tools/cc/irop.h tools/cc/helper.h
