@@ -1541,6 +1541,7 @@ void parse_global_var (Type base, Type first, char *name) {
 
 		if (lookup_here(name)) fail("'%s' is already declared", name);
 		if (is_voidt(t)) fail("variable '%s' cannot be void", name);
+
 		if (is_p("[")) {
 			Type pt;
 			unsigned long n;
@@ -1548,7 +1549,8 @@ void parse_global_var (Type base, Type first, char *name) {
 
 			advance();
 			expect_p("]");
-			if (!(t.ptr == 0 && t.base == B_BYTE && t.bconst)) fail("only 'const byte name[] = \"...\";' arrays are supported at file scope");
+			if (!(t.ptr == 0 && t.base == B_BYTE && t.bconst))
+				fail("only 'const byte name[] = \"...\";' arrays are supported at file scope");
 			expect_p("=");
 			lit = cur();
 			if (lit->kind != T_STR) fail("expected a string literal");
@@ -1585,9 +1587,12 @@ void parse_global_var (Type base, Type first, char *name) {
 		} else if (accept_p("=")) {
 			Sym *f;
 
-			if (!t.tconst) fail("only const globals can have initializers ('%s')", name);
 			F = &initfn;
-			bprintf(&gdefs, "Define Constant %s %s\n", irtype(t), name);
+			if (t.tconst)
+				bprintf(&gdefs, "Define Constant %s %s\n", irtype(t), name);
+			else
+				bprintf(&gdefs, "Define %s %s\n", irtype(t), name);
+
 			f = peek_whole_call(1);
 			if (f && same_type(f->rets[0], t)) {
 				char *args, *dest = name;
@@ -1602,6 +1607,7 @@ void parse_global_var (Type base, Type first, char *name) {
 				emit("Move %s -> %s", v.op, name);
 			}
 			F = NULL;
+
 			s = sym_add(name, S_VAR);
 			s->ir = name;
 			s->type = t;
@@ -1613,10 +1619,12 @@ void parse_global_var (Type base, Type first, char *name) {
 			s->ir = name;
 			s->type = t;
 			s->global = 1;
-			s->external = 1;
+			s->external = 0;
+			bprintf(&gdefs, "Define %s %s\n", irtype(t), name);
 			use_name(s->ir);
 			nglobal_used = nused;
 		}
+
 		if (!accept_p(",")) break;
 		t = base;
 		parse_stars(&t);
