@@ -215,9 +215,16 @@ static inline void opcode_floopcopyfhirfhirr (struct vm *vm) {
 	word srcptr = vm->registers[srcdptr];
 	word dstptr = vm->registers[dstdptr];
 
+	/* check if we can perform the operation */
+	volatile word xxx1 = hload(vm, srcptr + max);
+	volatile word xxx2 = hload(vm, dstptr + max);
+
+	/* we would have faulted if those addresses were invalid
+	 * we dont need to check them in the loop now */
+
 	while (i < max) {
-		word value = hload(vm, srcptr + i);
-		hstore(vm, dstptr + i, value);
+		word value = vm->heap[srcptr + i];
+		vm->heap[dstptr + i] = value;
 		i++;
 	}
 
@@ -236,10 +243,14 @@ static inline void opcode_floopeqlfhirfhirrr (struct vm *vm) {
 	word srcptr = vm->registers[srcdptr];
 	word dstptr = vm->registers[dstdptr];
 
+	volatile word xxx1 = hload(vm, srcptr + max);
+	volatile word xxx2 = hload(vm, dstptr + max);
+	/* same deal as the opcode above me */
+
 	while (i < max) {
 		if (i > maxreg) break;
-		word a = hload(vm, srcptr);
-		word b = hload(vm, dstptr);
+		word a = vm->heap[srcptr + i];
+		word b = vm->heap[dstptr + i];
 
 		if (a != b) {
 			vm->registers[destreg] = 0;
