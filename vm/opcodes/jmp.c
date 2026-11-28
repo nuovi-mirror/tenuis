@@ -208,9 +208,9 @@ static inline void opcode_loopnzrl (struct vm *vm) {
 static inline void opcode_floopcopyfhirfhirr (struct vm *vm) {
 	word i = 0;
 	wlockmem(vm);
-	word srcdptr = vm->heap[++vm->pc];
-	word dstdptr = vm->heap[++vm->pc];
-	word maxreg = vm->heap[++vm->pc];
+	word srcdptr = hload(vm, ++vm->pc);
+	word dstdptr = hload(vm, ++vm->pc);
+	word maxreg = hload(vm, ++vm->pc);
 	word max = vm->registers[maxreg];
 	word srcptr = vm->registers[srcdptr];
 	word dstptr = vm->registers[dstdptr];
@@ -222,4 +222,34 @@ static inline void opcode_floopcopyfhirfhirr (struct vm *vm) {
 	}
 
 	fwlockmem(vm);
+}
+
+/* looped memory compare */
+static inline void opcode_floopeqlfhirfhirrr (struct vm *vm) {
+	word i = 0;
+	rlockmem(vm);
+	word srcdptr = hload(vm, ++vm->pc);
+	word dstdptr = hload(vm, ++vm->pc);
+	word maxreg = hload(vm, ++vm->pc);
+	word destreg = hload(vm, ++vm->pc);
+	word max = vm->registers[maxreg];
+	word srcptr = vm->registers[srcdptr];
+	word dstptr = vm->registers[dstdptr];
+
+	while (i < max) {
+		if (i > maxreg) break;
+		word a = hload(vm, srcptr);
+		word b = hload(vm, dstptr);
+
+		if (a != b) {
+			vm->registers[destreg] = 0;
+			frlockmem(vm);
+			return;
+		}
+
+		i++;
+	}
+
+	vm->registers[destreg] = 1;
+	frlockmem(vm);
 }

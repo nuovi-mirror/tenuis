@@ -6,7 +6,7 @@
 #define MAX_LINE        1024
 #define MAX_LABELS      1024
 #define MAX_LABEL_LEN   64
-#define MAX_OPERANDS    3
+#define MAX_OPERANDS    6
 
 #define DEFAULT_HEAP_SIZE (1024u * 1024u)
 
