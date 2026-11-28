@@ -12,18 +12,17 @@ enum { T_WORD, T_BYTE, T_BOOL, T_BPTR, T_WPTR };
 
 enum { ADD, SUB, MUL, DIV, MOD, AND, OR, XOR, SHL, SHR };
 
-/* the memory-memory-memory and register-register-register forms */
-static const struct { const char *hhh, *rrr; } alu[] = {
-	{ "addhhh", "addrrr" },
-	{ "subhhh", "subrrr" },
-	{ "mulhhh", "mulrrr" },
-	{ "divhhh", "divrrr" },
-	{ "modhhh", "modrrr" },
-	{ "andhhh", "andrrr" },
-	{ "orhhh", "orrrr" },
-	{ "xorhhh", "xorrrr" },
-	{ "lshifthhh", "lshiftrrr" },
-	{ "rshifthhh", "rshiftrrr" },
+static const struct { const char *hhh, *rrr, *lhh, *llh; int comm; } alu[] = {
+	{ "addhhh", "addrrr", "addlhh", "addllh", 1 },
+	{ "subhhh", "subrrr", "sublhh", "subllh", 0 },
+	{ "mulhhh", "mulrrr", "mullhh", "mulllh", 1 },
+	{ "divhhh", "divrrr", "divlhh", "divllh", 0 },
+	{ "modhhh", "modrrr", "modlhh", "modllh", 0 },
+	{ "andhhh", "andrrr", "andlhh", "andllh", 1 },
+	{ "orhhh", "orrrr", "orlhh", "orllh", 1 },
+	{ "xorhhh", "xorrrr", "xorlhh", "xorllh", 1 },
+	{ "lshifthhh", "lshiftrrr", "lshiftlhh", "lshiftllh", 0 },
+	{ "rshifthhh", "rshiftrrr", "rshiftlhh", "rshiftllh", 0 },
 };
 
 typedef struct Sym {

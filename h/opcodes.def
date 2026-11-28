@@ -29,12 +29,12 @@ OPCODE(JMPERL, 0x0D, jmperl, "rl")
 OPCODE(JMPERH, 0x25, jmperh, "rh")
 
 OPCODE(JMPGRR, 0xA7, jmpgrr, "rr")
-OPCODE(JMPGRL, 0xA8, jmpgrh, "rl")
-OPCODE(JMPGRH, 0xA9, jmpgrl, "rh")
+OPCODE(JMPGRL, 0xA8, jmpgrl, "rl")
+OPCODE(JMPGRH, 0xA9, jmpgrh, "rh")
 
 OPCODE(JMPGERR, 0xAA, jmpgerr, "rr")
-OPCODE(JMPGERL, 0xAB, jmpgerh, "rl")
-OPCODE(JMPGERH, 0xAC, jmpgerl, "rh")
+OPCODE(JMPGERL, 0xAB, jmpgerl, "rl")
+OPCODE(JMPGERH, 0xAC, jmpgerh, "rh")
 
 OPCODE(JMPNERL, 0x26, jmpnerl, "rl")
 OPCODE(JMPNERR, 0x27, jmpnerr, "rr")

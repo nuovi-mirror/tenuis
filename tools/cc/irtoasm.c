@@ -397,9 +397,44 @@ void push (Opnd o) {
 
 /* instructions */
 
+/* is the operand the literal n? */
+int lit_is (Opnd o, long long n) {
+	return o.lit && is_number(o.text) && strtoll(o.text, NULL, 10) == n;
+}
+
+/* the negation of a literal, as assembler text (words wrap around) */
+char *negate_lit (const char *text) {
+	return xsprintf("%u", 0u - (unsigned)strtoll(text, NULL, 10));
+}
+
 void binop (int op, Opnd a, Opnd b, Sym *d) {
+	/* x + 1 and x - 1 back into x: bump the memory in place */
+	if ((op == ADD || op == SUB) && !a.lit && a.sym == d && lit_is(b, 1)) {
+		ins("%s %s", op == ADD ? "inch" : "dech", d->label);
+		return;
+	}
+	if (op == ADD && !b.lit && b.sym == d && lit_is(a, 1)) {
+		ins("inch %s", d->label);
+		return;
+	}
 	if (!a.lit && !b.lit) {
 		ins("%s %s, %s, %s", alu[op].hhh, a.sym->label, b.sym->label, d->label);
+		return;
+	}
+	if (a.lit && b.lit) {
+		ins("%s %s, %s, %s", alu[op].llh, a.text, b.text, d->label);
+		return;
+	}
+	if (a.lit) {
+		ins("%s %s, %s, %s", alu[op].lhh, a.text, b.sym->label, d->label);
+		return;
+	}
+	if (alu[op].comm) {
+		ins("%s %s, %s, %s", alu[op].lhh, b.text, a.sym->label, d->label);
+		return;
+	}
+	if (op == SUB) {		/* a - k is a + -k */
+		ins("%s %s, %s, %s", alu[ADD].lhh, negate_lit(b.text), a.sym->label, d->label);
 		return;
 	}
 	ld(1, a);
@@ -428,7 +463,7 @@ void compare (Opnd a, const char *op, Opnd b, Sym *d) {
 	ins("cmprrr r1, r2, r3");
 	ins("loadlr %d, r4", 31 - bit);
 	ins("rshiftrrr r3, r4, r3");
-	ins("andlrr 1, r3, r3");
+	if (bit) ins("andlrr 1, r3, r3");	/* bit 0 shifts all the way down on its own */
 	st(3, d);
 }
 
@@ -440,7 +475,9 @@ void branch (const char *lab, Opnd a, const char *op, Opnd b) {
 
 		if (a.lit && !b.lit) { Opnd s = a; a = b; b = s; }
 		ld(1, a);
-		if (b.lit) {
+		if (lit_is(b, 0) && bit == 0) {
+			ins("fjmpzrl r1, %s", lab);
+		} else if (b.lit) {
 			ins("%srll r1, %s, %s", eq, b.text, lab);
 		} else {
 			ld(2, b);
@@ -448,11 +485,18 @@ void branch (const char *lab, Opnd a, const char *op, Opnd b) {
 		}
 		return;
 	}
+	/* > and >= have jumps of their own; a < b is b > a, and a <= b is b >= a */
+	if (bit == 4 || bit == 8) {
+		Opnd s = a;
+
+		a = b;
+		b = s;
+		bit = bit == 4 ? 2 : 6;
+	}
 	ld(1, a);
 	ld(2, b);
 	ins("cmprrr r1, r2, r3");
-	ins("andlrr 0x%X, r3, r3", 1u << (31 - bit));
-	ins("fjmpnerll r3, 0, %s", lab);
+	ins("%s r3, %s", bit == 2 ? "jmpgrl" : "jmpgerl", lab);
 }
 
 char *jlab (const char *name) {
@@ -471,7 +515,7 @@ char *jlab (const char *name) {
 }
 
 void do_convert (Toks *t) {
-	int arrow = t->n - 2, end = arrow, to;
+	int arrow = t->n - 2, end = arrow, to, shift;
 	Opnd a;
 	Sym *d;
 
@@ -481,16 +525,24 @@ void do_convert (Toks *t) {
 	to = classify(t, 3, end);
 	a = opnd(t->v[1]);
 	d = dst(t->v[t->n - 1]);
-	ld(1, a);
-	if (!a.lit && a.sym->type == T_BPTR && to == T_WPTR) {
-		ins("loadlr 2, r2");
-		ins("rshiftrrr r1, r2, r1");	/* byte address to word address */
-	} else if (!a.lit && a.sym->type == T_WPTR && to == T_BPTR) {
-		ins("loadlr 2, r2");
-		ins("lshiftrrr r1, r2, r1");	/* and back */
-	} else if (to == T_BYTE) {
-		ins("andlrr 255, r1, r1");
+	shift = !a.lit && ((a.sym->type == T_BPTR && to == T_WPTR) ||
+			   (a.sym->type == T_WPTR && to == T_BPTR));
+	if (!shift) {
+		/* no address change: a copy, or a copy that keeps the low byte */
+		if (to == T_BYTE) {
+			if (a.lit) ins("andllh 255, %s, %s", a.text, d->label);
+			else ins("andlhh 255, %s, %s", a.sym->label, d->label);
+		} else if (a.lit) {
+			ins("loadlh %s, %s", a.text, d->label);
+		} else {
+			ins("loadhh %s, %s", a.sym->label, d->label);
+		}
+		return;
 	}
+	ld(1, a);
+	ins("loadlr 2, r2");
+	if (a.sym->type == T_BPTR) ins("rshiftrrr r1, r2, r1");	/* byte address to word address */
+	else ins("lshiftrrr r1, r2, r1");				/* and back */
 	st(1, d);
 }
 
@@ -737,12 +789,18 @@ void stmt (Toks *t) {
 		if (strcmp(t->v[1], "Left") && strcmp(t->v[1], "Right")) fail("Shift needs Left or Right");
 		binop(t->v[1][0] == 'L' ? SHL : SHR, opnd(t->v[2]), opnd(t->v[4]), dst(t->v[6]));
 	} else if (!strcmp(op, "Negate") || !strcmp(op, "Not")) {
+		Opnd a;
+		Sym *d;
+		int neg = op[0] == 'N' && op[1] == 'e';
+
 		need_n(t, 4);
 		want(t, 2, "->");
-		ld(1, opnd(t->v[1]));
-		if (op[0] == 'N' && op[1] == 'e') ins("sublrr 0, r1, r2");
-		else ins("notrr r1, r2");
-		st(2, dst(t->v[3]));
+		a = opnd(t->v[1]);
+		d = dst(t->v[3]);
+		if (neg && a.lit) ins("subllh 0, %s, %s", a.text, d->label);
+		else if (neg) ins("sublhh 0, %s, %s", a.sym->label, d->label);
+		else if (a.lit) ins("notlh %s, %s", a.text, d->label);
+		else ins("nothh %s, %s", a.sym->label, d->label);
 	} else if (!strcmp(op, "Move")) {
 		Opnd a;
 		Sym *d;
